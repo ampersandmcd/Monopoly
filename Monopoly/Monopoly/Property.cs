@@ -8,16 +8,16 @@ namespace Monopoly
 {
     public class Property
     {
-        public string name;
-        public string space_type; // go, street, blank, jail, free_parking, income_tax, luxury_tax, go_to_jail, utility, railroad
-        public string color;
-        public int position;
-        public int price;
-        public int price_build;
-        public int[] rent = new int[6]; //0th index = no houses, 1st index = 1 house,..., 5th index = hotel
-        public int num_houses; //0 = no houses, 1 = 1 house, ..., 5 = hotel
-        public bool is_owned;
-        public Player owner;
+        private string name;
+        private string space_type; // go, street, blank, jail, free_parking, income_tax, luxury_tax, go_to_jail, utility, railroad
+        private string color;
+        private int position;
+        private int price;
+        private int price_build;
+        private int[] rent = new int[6]; //0th index = no houses, 1st index = 1 house,..., 5th index = hotel
+        private int num_houses; //0 = no houses, 1 = 1 house, ..., 5 = hotel
+        private bool is_owned;
+        private Player owner;
 
         // parameter constructor for use with beginner_board.csv
         // takes in string array of row of table and assigns attributes from that row
@@ -39,6 +39,12 @@ namespace Monopoly
             owner = null;
         }
 
+        public string get_name()
+        {
+            return name;
+        }
+
+
         public override string ToString()
         {
             return string.Format(@"     Name: {0}
@@ -49,7 +55,9 @@ namespace Monopoly
                 Price to Build: {5}
                 Rent: {6} / {7} / {8} / {9} / {10} / {11}
                 Owner: {12}", name, space_type, color, position, price, price_build,
-                rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], owner != null ? owner.ToString() : "null");
+                rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.ToString() : "not owned");
         }
+
+
     }
 }
