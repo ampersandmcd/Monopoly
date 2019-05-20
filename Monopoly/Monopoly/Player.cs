@@ -45,6 +45,11 @@ namespace Monopoly
             return position;
         }
 
+        public int get_money()
+        {
+            return money;
+        }
+
         public int jailed()
         {
             return turns_jailed;

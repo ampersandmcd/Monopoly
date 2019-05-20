@@ -104,12 +104,13 @@ namespace Monopoly
             {
                 foreach (Player p in players)
                 {
-                    Console.WriteLine("\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());                    
+                    Console.WriteLine("\n***\n\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());
+                    Console.WriteLine("You currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
                     int double_count = 0;
                     bool turn_is_over = false;
                     while (!turn_is_over)
                     {
-                        Console.WriteLine("Please select an action from the following options.");
+                        Console.WriteLine("Please select an action from the following options.\n");
                         List<string> options = new List<string>();
                         if (p.jailed() > 0)
                         {
@@ -121,7 +122,7 @@ namespace Monopoly
                         {
                             Console.WriteLine("{0}: {1}", i, options[i]);
                         }
-                        int choice = input_int("Enter the number corresponding to the desired action.", 0, options.Count - 1);
+                        int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
 
                         if (options[choice].Equals("Roll dice"))
                         {
@@ -169,7 +170,11 @@ namespace Monopoly
                                 }
                             }
                             p.advance(roll, go_value);
-                            Console.WriteLine("You landed on {0}.", board[p.get_position()].get_name());
+                            Console.WriteLine("You landed on {0} [index {1}].", board[p.get_position()].get_name(), p.get_position());
+                            //TODO: implement go to jail , free parking , purchase and rent functionalities after roll
+                            //TODO: create escape function if players bankrupt (remove from list / break if less than 2)
+                            //TODOLT: implement trades, mortgages, houses, monopolies, railroads, utilities, go bonus
+                            //TODOLT: community chest, chance, auction
                         }
                     }
 
