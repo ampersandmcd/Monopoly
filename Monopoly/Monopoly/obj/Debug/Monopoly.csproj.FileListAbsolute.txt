@@ -1,0 +1,7 @@
+M:\monopoly\Monopoly\Monopoly\obj\Debug\Monopoly.csprojAssemblyReference.cache
+M:\monopoly\Monopoly\Monopoly\obj\Debug\Monopoly.csproj.CoreCompileInputs.cache
+M:\monopoly\Monopoly\Monopoly\bin\Debug\Monopoly.exe.config
+M:\monopoly\Monopoly\Monopoly\bin\Debug\Monopoly.exe
+M:\monopoly\Monopoly\Monopoly\bin\Debug\Monopoly.pdb
+M:\monopoly\Monopoly\Monopoly\obj\Debug\Monopoly.exe
+M:\monopoly\Monopoly\Monopoly\obj\Debug\Monopoly.pdb
