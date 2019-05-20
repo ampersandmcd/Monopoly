@@ -13,7 +13,7 @@ namespace Monopoly
         private int money;
         private int position;
         private int start_roll;
-        private bool is_jailed;
+        private int turns_jailed;
         private List<Property> properties_owned;
 
         public Player(string input_name, string input_character, int start_money)
@@ -40,9 +40,54 @@ namespace Monopoly
             return start_roll;
         }
 
+        public int get_position()
+        {
+            return position;
+        }
+
+        public int jailed()
+        {
+            return turns_jailed;
+        }
+               
         public void set_start_roll(int index)
         {
             start_roll = index;
+        }
+
+        public void go_to_jail()
+        {
+            position = 12;
+            turns_jailed = 1;
+        }
+
+        public void increment_jail()
+        {
+            turns_jailed++;
+        }
+
+        public void release_from_jail()
+        {
+            position = 12;
+            turns_jailed = 0;
+        }
+
+        public void pay_for_jail()
+        {
+            position = 12;
+            turns_jailed = 0;
+            money -= 50;
+        }
+
+        public void advance(int roll, int go_value)
+        {
+            position += roll;
+            if (position >= 40)
+            {
+                money += go_value;
+                Console.WriteLine("Congrats - you passed go, and collected ${0}! You now have ${1}", go_value, money);
+                position -= 40;
+            }
         }
 
         public override string ToString()

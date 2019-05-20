@@ -14,7 +14,7 @@ namespace Monopoly
             // configure container variables
 
             List<Player> players = new List<Player>();
-            List<Property> properties = new List<Property>();
+            List<Property> board = new List<Property>();
             List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
             Random dice = new Random();
 
@@ -36,10 +36,10 @@ namespace Monopoly
             while (!parser.EndOfData)
             {
                 string[] row = parser.ReadFields()[0].Split(',');
-                properties.Add(new Property(row));
+                board.Add(new Property(row));
             }
 
-            //foreach (Property p in properties)
+            //foreach (Property p in board)
             //{
             //    Console.WriteLine(p + "\n");
             //}
@@ -100,6 +100,82 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             // run game
 
+            while (players.Count > 1)
+            {
+                foreach (Player p in players)
+                {
+                    Console.WriteLine("\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());                    
+                    int double_count = 0;
+                    bool turn_is_over = false;
+                    while (!turn_is_over)
+                    {
+                        Console.WriteLine("Please select an action from the following options.");
+                        List<string> options = new List<string>();
+                        if (p.jailed() > 0)
+                        {
+                            options.Add("Pay $50 to escape jail");
+                        }
+
+                        options.Add("Roll dice"); //add trade, house, hotel options later
+                        for (int i = 0; i < options.Count; i++)
+                        {
+                            Console.WriteLine("{0}: {1}", i, options[i]);
+                        }
+                        int choice = input_int("Enter the number corresponding to the desired action.", 0, options.Count - 1);
+
+                        if (options[choice].Equals("Roll dice"))
+                        {
+                            bool doubles = false;
+                            int roll = roll_dice(dice, ref doubles);
+
+                            if (p.jailed() > 0 && p.jailed() < 3)
+                            {
+                                // only escape if doubles
+                                if (doubles)
+                                {
+                                    p.release_from_jail();
+                                    turn_is_over = true;
+                                }
+                                else
+                                {
+                                    p.increment_jail();
+                                    turn_is_over = true;
+                                }
+                            }
+                            else if (p.jailed() >= 3)
+                            {
+                                Console.WriteLine("You may not roll the dice to escape jail; because you have been jailed for 3 turns, you must pay $50");
+                                p.pay_for_jail();
+                                turn_is_over = true;
+                            }
+                            else
+                            {
+                                if (doubles && double_count < 2)
+                                {
+                                    double_count++;
+                                    Console.WriteLine("You rolled a {0} by rolling doubles! That's a doubles streak of {1}", roll, double_count);
+                                    turn_is_over = false;
+                                }
+                                else if (doubles && double_count == 2)
+                                {
+                                    Console.WriteLine("That's your third doubles roll in a row -- jail time for you!");
+                                    p.go_to_jail();
+                                    turn_is_over = true;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("You rolled a {0} by not rolling doubles.", roll);
+                                    turn_is_over = true;
+                                }
+                            }
+                            p.advance(roll, go_value);
+                            Console.WriteLine("You landed on {0}.", board[p.get_position()].get_name());
+                        }
+                    }
+
+
+                }
+            }
 
 
         }
@@ -107,6 +183,21 @@ namespace Monopoly
         private static int roll_dice(Random dice)
         {
             return dice.Next(1, 7) + dice.Next(1, 7);
+        }
+
+        private static int roll_dice(Random dice, ref bool doubles)
+        {
+            int roll_one = dice.Next(1, 7);
+            int roll_two = dice.Next(1, 7);
+            if (roll_one == roll_two)
+            {
+                doubles = true;
+            } 
+            else
+            {
+                doubles = false;
+            }
+            return roll_one + roll_two;
         }
 
         private static int input_int(string message, int min, int max)
