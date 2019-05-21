@@ -14,7 +14,9 @@ namespace Monopoly
         private int position;
         private int start_roll;
         private int turns_jailed;
+        private int double_count;
         private List<Property> properties_owned;
+        private List<Property> monopolies;
 
         public Player(string input_name, string input_character, int start_money)
         {
@@ -50,9 +52,34 @@ namespace Monopoly
             return money;
         }
 
+        public List<Property> get_properties()
+        {
+            return properties_owned;
+        }
+
+        public List<Property> get_monopolies()
+        {
+            return monopolies;
+        }
+
         public int jailed()
         {
             return turns_jailed;
+        }
+
+        public int get_double_count()
+        {
+            return double_count;
+        }
+
+        public void increment_double_count()
+        {
+            double_count++;
+        }
+
+        public void reset_double_count()
+        {
+            double_count = 0;
         }
                
         public void set_start_roll(int index)

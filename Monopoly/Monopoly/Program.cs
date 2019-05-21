@@ -8,6 +8,16 @@ namespace Monopoly
 {
     class Program
     {
+        //////////////////////////////////////////////////////////////////////////
+        
+        // configure string command constants
+        const string OPTION_ROLL_DICE = "Roll dice";
+        const string OPTION_ROLL_DICE_JAIL = "Roll dice (doubles will escape jail)";
+        const string OPTION_PAY_JAIL = "Pay $50 to escape jail";
+        const string OPTION_MORTGAGE = "Mortgage property";
+        const string OPTION_BUILD = "Build house / hotel";
+        const string OPTION_TRADE = "Trade property";
+
         static void Main(string[] args)
         {
             //////////////////////////////////////////////////////////////////////////
@@ -19,11 +29,11 @@ namespace Monopoly
             Random dice = new Random();
 
             //////////////////////////////////////////////////////////////////////////
-            // initialize constants
+            // initialize game-level constants
 
             int start_money = 1500;
             int go_value = 200;
-            int num_players = 2;
+            int num_players = 2;            
 
             //////////////////////////////////////////////////////////////////////////
             // parse property file into memory
@@ -106,82 +116,56 @@ namespace Monopoly
                 {
                     Console.WriteLine("\n***\n\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());
                     Console.WriteLine("You currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
-                    int double_count = 0;
+                    p.reset_double_count();
                     bool turn_is_over = false;
                     while (!turn_is_over)
                     {
-                        Console.WriteLine("Please select an action from the following options.\n");
-                        List<string> options = new List<string>();
-                        if (p.jailed() > 0)
-                        {
-                            options.Add("Pay $50 to escape jail");
-                        }
-
-                        options.Add("Roll dice"); //add trade, house, hotel options later
-                        for (int i = 0; i < options.Count; i++)
-                        {
-                            Console.WriteLine("{0}: {1}", i, options[i]);
-                        }
+                        List<string> options = generate_options(p);
                         int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
-
-                        if (options[choice].Equals("Roll dice"))
-                        {
-                            bool doubles = false;
-                            int roll = roll_dice(dice, ref doubles);
-
-                            if (p.jailed() > 0 && p.jailed() < 3)
-                            {
-                                // only escape if doubles
-                                if (doubles)
-                                {
-                                    p.release_from_jail();
-                                    turn_is_over = true;
-                                }
-                                else
-                                {
-                                    p.increment_jail();
-                                    turn_is_over = true;
-                                }
-                            }
-                            else if (p.jailed() >= 3)
-                            {
-                                Console.WriteLine("You may not roll the dice to escape jail; because you have been jailed for 3 turns, you must pay $50");
-                                p.pay_for_jail();
-                                turn_is_over = true;
-                            }
-                            else
-                            {
-                                if (doubles && double_count < 2)
-                                {
-                                    double_count++;
-                                    Console.WriteLine("You rolled a {0} by rolling doubles! That's a doubles streak of {1}", roll, double_count);
-                                    turn_is_over = false;
-                                }
-                                else if (doubles && double_count == 2)
-                                {
-                                    Console.WriteLine("That's your third doubles roll in a row -- jail time for you!");
-                                    p.go_to_jail();
-                                    turn_is_over = true;
-                                }
-                                else
-                                {
-                                    Console.WriteLine("You rolled a {0} by not rolling doubles.", roll);
-                                    turn_is_over = true;
-                                }
-                            }
-                            p.advance(roll, go_value);
-                            Console.WriteLine("You landed on {0} [index {1}].", board[p.get_position()].get_name(), p.get_position());
-                            //TODO: implement go to jail , free parking , purchase and rent functionalities after roll
-                            //TODO: create escape function if players bankrupt (remove from list / break if less than 2)
-                            //TODOLT: implement trades, mortgages, houses, monopolies, railroads, utilities, go bonus
-                            //TODOLT: community chest, chance, auction
-                        }
+                        take_action(p, options, choice, turn_is_over);
+                       
                     }
 
 
                 }
             }
 
+
+        }
+
+        private static List<string> generate_options(Player p)
+        {
+            List<string> options = new List<string>();
+
+            if (p.jailed() == 0) //player has full freedom
+            {
+                options.Add(OPTION_ROLL_DICE);
+                if (p.get_properties().Count > 0)
+                {
+                    options.Add(OPTION_TRADE);
+                    options.Add(OPTION_MORTGAGE);
+                }
+                if (p.get_monopolies().Count > 0)
+                {
+                    options.Add(OPTION_BUILD);
+                }
+
+            }
+            else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll to get out of jail
+            {
+                options.Add(OPTION_ROLL_DICE_JAIL);
+                options.Add(OPTION_PAY_JAIL);
+            }
+            else //player must pay to get out of jail
+            {
+                options.Add(OPTION_PAY_JAIL);
+            }
+
+            return options;
+        }
+
+        private static void take_action(Player p, List<string> options, int choice, bool turn_is_over)
+        {
 
         }
 
