@@ -170,6 +170,7 @@ namespace Monopoly
                 }
             }
             Console.WriteLine("\n{0}\nGAME OVER!\n{1} the {2} wins!", stars, players[0].get_name(), players[0].get_char());
+            Console.ReadLine();
         }
 
         private static List<string> generate_options(Player p, bool turn_is_over, bool has_rolled, bool rent_paid)
@@ -209,12 +210,18 @@ namespace Monopoly
             }
             else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll to get out of jail
             {
-                options.Add(OPTION_ROLL_DICE_JAIL);
-                options.Add(OPTION_PAY_JAIL);
+                if (!turn_is_over)
+                {
+                    options.Add(OPTION_ROLL_DICE_JAIL);
+                    options.Add(OPTION_PAY_JAIL);
+                }                
             }
             else //player must pay to get out of jail
             {
-                options.Add(OPTION_PAY_JAIL);
+                if (!turn_is_over)
+                {
+                    options.Add(OPTION_PAY_JAIL);
+                }
             }
             //////////////////////////////////////////////////////////////////////////            
             if (turn_is_over)
@@ -262,7 +269,7 @@ namespace Monopoly
                 }
                 else
                 {
-                    Console.WriteLine("\nYou rolled a {0}.", roll);
+                    Console.WriteLine("You rolled a {0}.", roll);
                     turn_is_over = true;
                     has_rolled = true;
                     p.advance(roll);
@@ -271,7 +278,7 @@ namespace Monopoly
 
                 if (board[p.get_position()].get_name().Equals("Go To Jail"))
                 {
-                    Console.WriteLine("Oof - you landed on go to jail!");
+                    Console.WriteLine("\nOof - you landed on go to jail!");
                     has_rolled = false;
                     turn_is_over = true;
                     p.go_to_jail();
@@ -281,6 +288,7 @@ namespace Monopoly
             if (action.Equals(OPTION_PAY_JAIL))
             {
                 p.pay_for_jail();
+                Console.WriteLine("You've successfully paid bond to escape jail. You now have ${0}", p.get_money());
                 turn_is_over = true;
             }
             //////////////////////////////////////////////////////////////////////////
@@ -291,11 +299,14 @@ namespace Monopoly
                 if (doubles)
                 {
                     p.release_from_jail();
+                    Console.WriteLine("Congrats! You rolled doubles, and are free from jail!");
                     turn_is_over = true;
                 }
                 else
                 {
                     p.increment_jail();
+                    Console.WriteLine("Darn! You didn't roll doubles, and are still in jail. You have {0} more chances " +
+                        "to roll doubles before you'll have to pay bond.", 3 - p.jailed() + 1);
                     turn_is_over = true; 
                 }
             }
@@ -308,13 +319,15 @@ namespace Monopoly
                 {
                     Player owner = board[p.get_position()].get_owner();
                     p.pay_rent(owner, rent);
-                    Console.WriteLine("Thank you for paying $ {0} in rent to {1}", rent, owner.get_nickname());
+                    Console.WriteLine("Thank you for paying ${0} in rent to {1}", rent, owner.get_nickname());
                     Console.WriteLine("{0} now has ${1}", owner.get_nickname(), owner.get_money());
                     Console.WriteLine("{0} now has ${1}", p.get_nickname(), p.get_money());
                 }
                 else
                 {
-                    Console.WriteLine("You cannot afford rent!");                    
+                    Player owner = board[p.get_position()].get_owner();
+                    Console.WriteLine("You cannot afford rent!");
+                    p.pay_rent(owner, rent);
                 }
             }
             //////////////////////////////////////////////////////////////////////////

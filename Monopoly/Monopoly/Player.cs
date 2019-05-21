@@ -160,7 +160,7 @@ namespace Monopoly
 
         public void pay_for_jail()
         {
-            position = 12;
+            position = 10;
             turns_jailed = 0;
             money -= 50;
         }
