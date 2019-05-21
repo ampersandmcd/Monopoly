@@ -18,6 +18,8 @@ namespace Monopoly
         private int double_count;
         private List<Property> properties_owned;
         private List<Property> monopolies;
+        private List<Property> railroads;
+        private List<Property> utilities;
 
         public Player(string input_name, string input_character, int start_money, int input_go_value)
         {
@@ -27,6 +29,8 @@ namespace Monopoly
             position = 0; // go
             properties_owned = new List<Property>();
             monopolies = new List<Property>();
+            railroads = new List<Property>();
+            utilities = new List<Property>();
             go_value = input_go_value;
         }
 
@@ -57,6 +61,14 @@ namespace Monopoly
                         monopolies.Add(other_p);
                     }
                 }
+            }
+            if (property.get_type().Equals("Utilities"))
+            {
+                utilities.Add(property);
+            }
+            if (property.get_type().Equals("Railroad"))
+            {
+                railroads.Add(property);
             }
         }
 
@@ -114,6 +126,16 @@ namespace Monopoly
         public List<Property> get_monopolies()
         {
             return monopolies;
+        }
+
+        public List<Property> get_railroads()
+        {
+            return railroads;
+        }
+
+        public List<Property> get_utilities()
+        {
+            return utilities;
         }
 
         public int jailed()

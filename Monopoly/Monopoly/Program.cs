@@ -133,6 +133,7 @@ namespace Monopoly
                     Console.WriteLine("\n{0}\n\nIt is {1} the {2}'s turn.", 
                         stars, p.get_name(), p.get_char());
                     p.reset_double_count();
+                    int dice_roll = 0; //for use in determining utility payments
                     bool turn_is_over = false; //indicates whether player may roll or not
                     bool turn_ended = false; //indicates whether player has elected to end turn (after purchases, etc.)
                     bool has_rolled = false; //indicates whether player has rolled at least once and is thus eligible to buy
@@ -147,7 +148,7 @@ namespace Monopoly
                             Console.WriteLine("{0}: {1}", i, options[i]);
                         }
                         int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
-                        take_action(p, options, choice, ref turn_is_over, ref has_rolled, ref turn_ended, ref rent_paid);
+                        take_action(p, options, choice, ref turn_is_over, ref has_rolled, ref turn_ended, ref rent_paid, ref dice_roll);
                         
 
                         //check after every action that player is still valid
@@ -243,7 +244,7 @@ namespace Monopoly
         }
 
         private static void take_action(Player p, List<string> options, int choice, ref bool turn_is_over, 
-            ref bool has_rolled, ref bool turn_ended, ref bool rent_paid)
+            ref bool has_rolled, ref bool turn_ended, ref bool rent_paid, ref int dice_roll)
         {
             string action = options[choice];
 
@@ -251,14 +252,14 @@ namespace Monopoly
             if (action.Equals(OPTION_ROLL_DICE))
             {
                 bool doubles = false;
-                int roll = roll_dice(dice, ref doubles);
+                dice_roll = roll_dice(dice, ref doubles);
                 if (doubles && p.get_double_count() < 2)
                 {
-                    Console.WriteLine("You rolled a {0} on doubles!", roll);
+                    Console.WriteLine("You rolled a {0} on doubles!", dice_roll);
                     turn_is_over = false;
                     p.increment_double_count();
                     has_rolled = true;
-                    p.advance(roll);
+                    p.advance(dice_roll);
                 }
                 else if (doubles && p.get_double_count() == 2)
                 {
@@ -269,10 +270,10 @@ namespace Monopoly
                 }
                 else
                 {
-                    Console.WriteLine("You rolled a {0}.", roll);
+                    Console.WriteLine("You rolled a {0}.", dice_roll);
                     turn_is_over = true;
                     has_rolled = true;
-                    p.advance(roll);
+                    p.advance(dice_roll);
                 }
                 
 
@@ -314,7 +315,7 @@ namespace Monopoly
             if (action.Equals(OPTION_PAY_RENT))
             {
                 rent_paid = true;
-                int rent = board[p.get_position()].get_rent();
+                int rent = board[p.get_position()].get_rent(dice_roll);
                 if (p.get_money() > rent)
                 {
                     Player owner = board[p.get_position()].get_owner();

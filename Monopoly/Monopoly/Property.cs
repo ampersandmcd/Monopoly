@@ -81,16 +81,40 @@ namespace Monopoly
             return num_houses;
         }
 
-        public int get_rent()
+        public int get_rent(int dice_roll = 0)
         {
-            if (owner.get_monopolies().IndexOf(this) != -1 && num_houses == 0)
+            if (space_type.Equals("Street"))
             {
-                //owner has a monopoly on the property; double the rent
-                return rent[0] * 2;
+                if (owner.get_monopolies().IndexOf(this) != -1 && num_houses == 0)
+                {
+                    //owner has a monopoly on the property; double the rent
+                    return rent[0] * 2;
+                }
+                else
+                {
+                    return rent[num_houses];
+                }
+            }
+            else if (space_type.Equals("Railroad"))
+            {
+                int num_railroads = owner.get_railroads().Count;
+                return num_railroads * 50;
+            }
+            else if (space_type.Equals("Utility"))
+            {
+                int num_utilities = owner.get_utilities().Count;
+                if (num_utilities == 1)
+                {
+                    return 4 * dice_roll;
+                }
+                else //2 utilities
+                {
+                    return 10 * dice_roll;
+                }
             }
             else
             {
-                return rent[num_houses];
+                return 0;
             }
         }
 
