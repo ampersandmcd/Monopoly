@@ -85,7 +85,7 @@ Price: {4}
 Price to Build: {5}
 Rent: {6} / {7} / {8} / {9} / {10} / {11}
 Owner: {12}", name, space_type, color, position, price, price_build,
-rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.get_name() + " the " + owner.get_char() : "not owned");
+rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.get_nickname() : "not owned");
         }
 
 

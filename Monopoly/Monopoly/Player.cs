@@ -81,6 +81,11 @@ namespace Monopoly
             return character;
         }
 
+        public string get_nickname()
+        {
+            return name + " the " + character;
+        }
+
         public int get_start_roll()
         {
             return start_roll;
