@@ -44,6 +44,11 @@ namespace Monopoly
             return name;
         }
 
+        public string get_type()
+        {
+            return space_type;
+        }
+
 
         public override string ToString()
         {

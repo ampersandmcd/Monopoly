@@ -17,23 +17,30 @@ namespace Monopoly
         const string OPTION_MORTGAGE = "Mortgage property";
         const string OPTION_BUILD = "Build house / hotel";
         const string OPTION_TRADE = "Trade property";
+        const string OPTION_BUY = "Buy property";
+        const string OPTION_END_TURN = "End turn";
+
+        //////////////////////////////////////////////////////////////////////////
+        // configure container variables
+
+        static List<Player> players = new List<Player>();
+        static List<Property> board = new List<Property>();
+        static Random dice = new Random();
+        static List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
+
+        //////////////////////////////////////////////////////////////////////////
+        // initialize global game-level constants
+
+        static int start_money = 1500;
+        static int go_value = 200;
+        static int num_players = 2;
+
+        //////////////////////////////////////////////////////////////////////////
+
+
 
         static void Main(string[] args)
         {
-            //////////////////////////////////////////////////////////////////////////
-            // configure container variables
-
-            List<Player> players = new List<Player>();
-            List<Property> board = new List<Property>();
-            List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
-            Random dice = new Random();
-
-            //////////////////////////////////////////////////////////////////////////
-            // initialize game-level constants
-
-            int start_money = 1500;
-            int go_value = 200;
-            int num_players = 2;            
 
             //////////////////////////////////////////////////////////////////////////
             // parse property file into memory
@@ -41,7 +48,7 @@ namespace Monopoly
             string path = @"M:\monopoly\beginner_board.csv";
             var parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
             parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
-            parser.SetDelimiters(new string[] { ";" });          
+            parser.SetDelimiters(new string[] { ";" });
             parser.ReadFields(); // skip first (header) row of CSV
             while (!parser.EndOfData)
             {
@@ -60,6 +67,9 @@ namespace Monopoly
             Console.WriteLine("Welcome to Hylandopoly!");
             start_money = input_int("\nPlease enter the desired starting amount of H-bucks for each player.", 100, Int32.MaxValue );            
             Console.WriteLine("Each player will start with ${0}.", start_money);
+
+            go_value = input_int("\nPlease enter the desired amount of money earned upon passing go.", 0, Int32.MaxValue);
+            Console.WriteLine("Each player will earn ${0} upon passing go.", go_value);
 
             num_players = input_int("\nPlease enter the number of players (at least 2, and at most 8) who will be participating.", 2, 8);            
             Console.WriteLine("{0} players will be participating.", num_players);
@@ -81,7 +91,7 @@ namespace Monopoly
                 string character = available_characters[choice];
                 available_characters.RemoveAt(choice);
 
-                players.Add(new Player(name, character, start_money));
+                players.Add(new Player(name, character, start_money, go_value));
                 Console.WriteLine("Welcome, {0} the {1}!", name, character);
             }
 
@@ -115,41 +125,61 @@ namespace Monopoly
                 foreach (Player p in players)
                 {
                     Console.WriteLine("\n***\n\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());
-                    Console.WriteLine("You currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
                     p.reset_double_count();
-                    bool turn_is_over = false;
-                    while (!turn_is_over)
+                    bool turn_is_over = false; //indicates whether player may roll or not
+                    bool turn_ended = false; //indicates whether player has elected to end turn (after purchases, etc.)
+                    bool can_buy = false;
+                    while (!turn_ended)
                     {
-                        List<string> options = generate_options(p);
+                        Console.WriteLine("\nYou currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                        List<string> options = generate_options(p, turn_is_over, can_buy);
+                        Console.WriteLine("You may:\n");
+                        for (int i = 0; i < options.Count; i++)
+                        {
+                            Console.WriteLine("{0}: {1}", i, options[i]);
+                        }
                         int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
-                        take_action(p, options, choice, turn_is_over);
-                       
+                        take_action(p, options, choice, ref turn_is_over, ref can_buy, ref turn_ended);                       
                     }
-
-
                 }
             }
-
-
         }
 
-        private static List<string> generate_options(Player p)
+        private static List<string> generate_options(Player p, bool turn_is_over, bool can_buy)
         {
             List<string> options = new List<string>();
 
+
+            //////////////////////////////////////////////////////////////////////////
+            if (turn_is_over)
+            {
+                options.Add(OPTION_END_TURN);
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (p.jailed() == 0) //player has full freedom
             {
-                options.Add(OPTION_ROLL_DICE);
+                if (!turn_is_over)
+                {
+                    options.Add(OPTION_ROLL_DICE);
+                }
+                //////////////////////////////////////////////////////////////////////////
+                if (can_buy && board[p.get_position()].get_type() == "Street" || 
+                    board[p.get_position()].get_type() == "Railroad" || 
+                    board[p.get_position()].get_type() == "Utility")
+                {
+                    options.Add(OPTION_BUY);
+                }
+                //////////////////////////////////////////////////////////////////////////
                 if (p.get_properties().Count > 0)
                 {
                     options.Add(OPTION_TRADE);
                     options.Add(OPTION_MORTGAGE);
                 }
+                //////////////////////////////////////////////////////////////////////////
                 if (p.get_monopolies().Count > 0)
                 {
                     options.Add(OPTION_BUILD);
                 }
-
             }
             else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll to get out of jail
             {
@@ -160,13 +190,73 @@ namespace Monopoly
             {
                 options.Add(OPTION_PAY_JAIL);
             }
+            //////////////////////////////////////////////////////////////////////////
 
             return options;
         }
 
-        private static void take_action(Player p, List<string> options, int choice, bool turn_is_over)
+        private static void take_action(Player p, List<string> options, int choice, ref bool turn_is_over, ref bool can_buy, ref bool turn_ended)
         {
+            string action = options[choice];
 
+
+            if (action.Equals(OPTION_ROLL_DICE))
+            {
+                bool doubles = false;
+                int roll = roll_dice(dice, ref doubles);
+                if (doubles && p.get_double_count() < 2)
+                {
+                    Console.WriteLine("You rolled a {0} on doubles!", roll);
+                    turn_is_over = false;
+                    p.increment_double_count();
+                }
+                else if (doubles && p.get_double_count() == 2)
+                {
+                    Console.WriteLine("Cheater! You rolled doubles three times in a row; you're going to jail!");
+                    turn_is_over = true;
+                    p.go_to_jail();
+                }
+                else
+                {
+                    Console.WriteLine("\nYou rolled a {0}.", roll);
+                    turn_is_over = true;
+                }
+                can_buy = true;
+                p.advance(roll);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_PAY_JAIL))
+            {
+                p.pay_for_jail();
+                turn_is_over = true;
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_ROLL_DICE_JAIL))
+            {
+                bool doubles = false;
+                roll_dice(dice, ref doubles);
+                if (doubles)
+                {
+                    p.release_from_jail();
+                    turn_is_over = true;
+                }
+                else
+                {
+                    p.increment_jail();
+                    turn_is_over = true; 
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_BUY))
+            {
+                //todo: add buy functionality
+                //todo: test jail functionality
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_END_TURN))
+            {
+                turn_ended = true;
+            }
         }
 
         private static int roll_dice(Random dice)

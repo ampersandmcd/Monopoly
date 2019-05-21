@@ -11,6 +11,7 @@ namespace Monopoly
         private string character;
         private string name;
         private int money;
+        private int go_value;
         private int position;
         private int start_roll;
         private int turns_jailed;
@@ -18,13 +19,15 @@ namespace Monopoly
         private List<Property> properties_owned;
         private List<Property> monopolies;
 
-        public Player(string input_name, string input_character, int start_money)
+        public Player(string input_name, string input_character, int start_money, int input_go_value)
         {
             name = input_name;
             character = input_character;
             money = start_money;
             position = 0; // go
             properties_owned = new List<Property>();
+            monopolies = new List<Property>();
+            go_value = input_go_value;
         }
 
         public string get_name()
@@ -111,7 +114,7 @@ namespace Monopoly
             money -= 50;
         }
 
-        public void advance(int roll, int go_value)
+        public void advance(int roll)
         {
             position += roll;
             if (position >= 40)
