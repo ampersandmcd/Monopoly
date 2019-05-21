@@ -354,6 +354,48 @@ namespace Monopoly
                 Console.WriteLine("Current Tile:\n" + board[p.get_position()]);
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_BUILD))
+            {
+                List<Property> monopolies = p.get_monopolies();
+                List<Property> buildable = new List<Property>();
+                Console.WriteLine("You may build on one of the following properties\n");
+                foreach (Property property in monopolies)
+                {
+                    if (property.get_houses() < 5)
+                    {
+                        Console.WriteLine(property + "\n");
+                        buildable.Add(property);
+                    }
+                }
+                Console.WriteLine("\nSelect a property from the list below to build upon:");
+                for (int i = 0; i < buildable.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, buildable[i].get_name());
+                }
+                Console.WriteLine("{0}: Cancel", buildable.Count);
+                int number = input_int("\nEnter the number corresponding to the desired action.", 0, buildable.Count);
+                if (number < buildable.Count)
+                {
+                    Property property = buildable[number];
+                    property.build();
+                    if (property.get_houses() < 5)
+                    {
+                        // houses
+                        Console.WriteLine("Congratulations! {0} now has {1} houses on it.", property.get_name(), property.get_houses());
+
+                    }
+                    else
+                    {
+                        // hotel
+                        Console.WriteLine("Congratulations! {0} now has a hotel on it! You may not build any further on this property.", property.get_name());
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("House building cancelled.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_END_TURN))
             {
                 turn_ended = true;
@@ -367,8 +409,10 @@ namespace Monopoly
 
         private static int roll_dice(Random dice, ref bool doubles)
         {
-            int roll_one = dice.Next(1, 7);
-            int roll_two = dice.Next(1, 7);
+            //int roll_one = dice.Next(1, 7);
+            //int roll_two = dice.Next(1, 7);
+            int roll_one = input_int("HACKER MODE (enter first dice number)", int.MinValue, int.MaxValue);
+            int roll_two = input_int("HACKER MODE (enter second dice number)", int.MinValue, int.MaxValue);
             if (roll_one == roll_two)
             {
                 doubles = true;

@@ -55,6 +55,12 @@ namespace Monopoly
             is_owned = true;
         }
 
+        public void build()
+        {
+            num_houses++;
+            owner.pay(price_build);
+        }
+
         public int get_price()
         {
             return price;
@@ -70,9 +76,22 @@ namespace Monopoly
             return owner;
         }
 
+        public int get_houses()
+        {
+            return num_houses;
+        }
+
         public int get_rent()
         {
-            return rent[num_houses];
+            if (owner.get_monopolies().IndexOf(this) != -1 && num_houses == 0)
+            {
+                //owner has a monopoly on the property; double the rent
+                return rent[0] * 2;
+            }
+            else
+            {
+                return rent[num_houses];
+            }
         }
 
         public override string ToString()
@@ -84,10 +103,13 @@ Position: {3}
 Price: {4}
 Price to Build: {5}
 Rent: {6} / {7} / {8} / {9} / {10} / {11}
-Owner: {12}", name, space_type, color, position, price, price_build,
-rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.get_nickname() : "not owned");
+Number of Houses: {12}
+Current Rent: {13} 
+Owner: {14}", name, space_type, color, position, price, price_build,
+rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], 
+(num_houses < 5) ? num_houses.ToString() : "Hotel",
+get_rent(), 
+is_owned ? owner.get_nickname() : "not owned");
         }
-
-
     }
 }

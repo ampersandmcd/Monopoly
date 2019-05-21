@@ -49,7 +49,7 @@ namespace Monopoly
             if (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) || 
                 color_count == 3)
             {
-                Console.WriteLine("Congrats! You have a monopoly on {0}!", color);
+                Console.WriteLine("\nCongrats! You have a monopoly on {0}!", color);
                 foreach (Property other_p in properties_owned)
                 {
                     if (other_p.get_color().Equals(color))
@@ -58,6 +58,11 @@ namespace Monopoly
                     }
                 }
             }
+        }
+
+        public void pay(int amount)
+        {
+            money -= amount;
         }
 
         public void pay_rent(Player owner, int rent)
@@ -138,7 +143,7 @@ namespace Monopoly
 
         public void go_to_jail()
         {
-            position = 12;
+            position = 10;
             turns_jailed = 1;
         }
 
@@ -149,7 +154,7 @@ namespace Monopoly
 
         public void release_from_jail()
         {
-            position = 12;
+            position = 10;
             turns_jailed = 0;
         }
 
