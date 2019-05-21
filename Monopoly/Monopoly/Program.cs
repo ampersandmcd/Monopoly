@@ -19,6 +19,10 @@ namespace Monopoly
         const string OPTION_TRADE = "Trade property";
         const string OPTION_BUY = "Buy property";
         const string OPTION_END_TURN = "End turn";
+        const string OPTION_VIEW_PROPERTIES = "View owned properties";
+        const string OPTION_VIEW_MONOPOLIES = "View owned monopolies";
+        const string OPTION_PAY_RENT = "Pay rent";
+        const string OPTION_TILE_INFO = "View information about the current tile";
 
         //////////////////////////////////////////////////////////////////////////
         // configure container variables
@@ -122,39 +126,58 @@ namespace Monopoly
 
             while (players.Count > 1)
             {
+                List<Player> eliminated_players = new List<Player>();
                 foreach (Player p in players)
                 {
-                    Console.WriteLine("\n***\n\nIt is {0} the {1}'s turn.", p.get_name(), p.get_char());
+                    Console.WriteLine("\n**************************\n\nIt is {0} the {1}'s turn.", 
+                        p.get_name(), p.get_char());
                     p.reset_double_count();
                     bool turn_is_over = false; //indicates whether player may roll or not
                     bool turn_ended = false; //indicates whether player has elected to end turn (after purchases, etc.)
-                    bool can_buy = false;
+                    bool can_buy = false; //indicates whether player has rolled at least once and is thus eligible to buy
+                    bool rent_paid = false; //indicates whether player has paid rent (where applicable - see take_action())
                     while (!turn_ended)
                     {
-                        Console.WriteLine("\nYou currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
-                        List<string> options = generate_options(p, turn_is_over, can_buy);
+                        Console.WriteLine("\n***\n\nYou currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                        List<string> options = generate_options(p, turn_is_over, can_buy, rent_paid);
                         Console.WriteLine("You may:\n");
                         for (int i = 0; i < options.Count; i++)
                         {
                             Console.WriteLine("{0}: {1}", i, options[i]);
                         }
                         int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
-                        take_action(p, options, choice, ref turn_is_over, ref can_buy, ref turn_ended);                       
+                        take_action(p, options, choice, ref turn_is_over, ref can_buy, ref turn_ended, ref rent_paid);
+                        
+
+                        //check after every action that player is still valid
+                        if (p.get_money() <= 0)
+                        {
+                            Console.WriteLine("You've gone bankrupt! You're eliminated!");
+                            eliminated_players.Add(p);
+                            turn_ended = true;
+                        }
+                    }
+                    if (players.Count - eliminated_players.Count <= 1)
+                    {
+                        //don't continue to the next player; only one remains
+                        break;
                     }
                 }
+                foreach (Player p in eliminated_players)
+                {
+                    players.Remove(p);
+                }
             }
+            Console.WriteLine("GAME OVER! {0} the {1} wins!", players[0].get_name(), players[0].get_char());
         }
 
-        private static List<string> generate_options(Player p, bool turn_is_over, bool can_buy)
+        private static List<string> generate_options(Player p, bool turn_is_over, bool can_buy, bool rent_paid)
         {
             List<string> options = new List<string>();
 
-
-            //////////////////////////////////////////////////////////////////////////
-            if (turn_is_over)
-            {
-                options.Add(OPTION_END_TURN);
-            }
+            options.Add(OPTION_VIEW_PROPERTIES);
+            options.Add(OPTION_VIEW_MONOPOLIES);
+            options.Add(OPTION_TILE_INFO);
             //////////////////////////////////////////////////////////////////////////
             if (p.jailed() == 0) //player has full freedom
             {
@@ -163,7 +186,9 @@ namespace Monopoly
                     options.Add(OPTION_ROLL_DICE);
                 }
                 //////////////////////////////////////////////////////////////////////////
-                if (can_buy && board[p.get_position()].get_type() == "Street" || 
+                if (can_buy  &&
+                    board[p.get_position()].get_owner() == null &&
+                    board[p.get_position()].get_type() == "Street" || 
                     board[p.get_position()].get_type() == "Railroad" || 
                     board[p.get_position()].get_type() == "Utility")
                 {
@@ -190,12 +215,26 @@ namespace Monopoly
             {
                 options.Add(OPTION_PAY_JAIL);
             }
+            //////////////////////////////////////////////////////////////////////////            
+            if (turn_is_over)
+            {
+                options.Add(OPTION_END_TURN);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_owner() != null && board[p.get_position()].get_owner() != p &&
+                rent_paid == false)
+            {
+                //clear all options and force payment
+                options.Clear();
+                options.Add(OPTION_PAY_RENT);
+            }
             //////////////////////////////////////////////////////////////////////////
 
             return options;
         }
 
-        private static void take_action(Player p, List<string> options, int choice, ref bool turn_is_over, ref bool can_buy, ref bool turn_ended)
+        private static void take_action(Player p, List<string> options, int choice, ref bool turn_is_over, 
+            ref bool can_buy, ref bool turn_ended, ref bool rent_paid)
         {
             string action = options[choice];
 
@@ -223,6 +262,14 @@ namespace Monopoly
                 }
                 can_buy = true;
                 p.advance(roll);
+
+                if (board[p.get_position()].get_name().Equals("Go To Jail"))
+                {
+                    Console.WriteLine("Oof - you landed on go to jail!");
+                    can_buy = false;
+                    turn_is_over = true;
+                    p.go_to_jail();
+                }
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_PAY_JAIL))
@@ -247,10 +294,55 @@ namespace Monopoly
                 }
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_PAY_RENT))
+            {
+                rent_paid = true;
+                int rent = board[p.get_position()].get_rent();
+                if (p.get_money() > rent)
+                {
+                    Player owner = board[p.get_position()].get_owner();
+                    p.pay_rent(owner, rent); 
+                }
+                else
+                {
+                    Console.WriteLine("You cannot afford rent!");                    
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_BUY))
             {
-                //todo: add buy functionality
-                //todo: test jail functionality
+                p.buy(board[p.get_position()]);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_VIEW_PROPERTIES))
+            {
+                Console.WriteLine("Owned Properties:\n");
+                foreach (Property property in p.get_properties())
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                if (p.get_properties().Count == 0)
+                {
+                    Console.WriteLine("You do not own any properties.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_VIEW_MONOPOLIES))
+            {
+                Console.WriteLine("Owned Monopolies:\n");
+                foreach (Property property in p.get_monopolies())
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                if (p.get_monopolies().Count == 0)
+                {
+                    Console.WriteLine("You do not own any monopolies.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_TILE_INFO))
+            {
+                Console.WriteLine(board[p.get_position()]);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_END_TURN))
@@ -287,6 +379,7 @@ namespace Monopoly
             {
                 if (Int32.TryParse(Console.ReadLine(), out num) && num >= min && num <= max)
                 {
+                    Console.WriteLine("\n***\n");
                     break;
                 }
                 else

@@ -49,18 +49,43 @@ namespace Monopoly
             return space_type;
         }
 
+        public void buy(Player p)
+        {
+            owner = p;
+            is_owned = true;
+        }
+
+        public int get_price()
+        {
+            return price;
+        }
+
+        public string get_color()
+        {
+            return color;
+        }
+
+        public Player get_owner()
+        {
+            return owner;
+        }
+
+        public int get_rent()
+        {
+            return rent[num_houses];
+        }
 
         public override string ToString()
         {
-            return string.Format(@"     Name: {0}
-                Type: {1}
-                Color: {2}
-                Position: {3}
-                Price: {4}
-                Price to Build: {5}
-                Rent: {6} / {7} / {8} / {9} / {10} / {11}
-                Owner: {12}", name, space_type, color, position, price, price_build,
-                rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.ToString() : "not owned");
+            return string.Format(@"Name: {0}
+Type: {1}
+Color: {2}
+Position: {3}
+Price: {4}
+Price to Build: {5}
+Rent: {6} / {7} / {8} / {9} / {10} / {11}
+Owner: {12}", name, space_type, color, position, price, price_build,
+rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], is_owned ? owner.get_name() + " the " + owner.get_char() : "not owned");
         }
 
 

@@ -30,6 +30,47 @@ namespace Monopoly
             go_value = input_go_value;
         }
 
+        public void buy(Property property)
+        {
+            property.buy(this); //call buy method of property to set owner
+            money -= property.get_price();
+            properties_owned.Add(property);
+            Console.WriteLine("Congratulations! You now own {0}. Your new bank balance is ${1}. " +
+                "Below is more information about your purchase:\n\n{2}", property.get_name(), money, property);
+            string color = property.get_color();
+            int color_count = 0;
+            foreach (Property other_p in properties_owned) //check if this purchase completed a monopoly
+            {
+                if (other_p.get_color().Equals(color))
+                {
+                    color_count++;
+                }
+            }
+            if (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) || 
+                color_count == 3)
+            {
+                Console.WriteLine("Congrats! You have a monopoly on {0}!", color);
+                foreach (Property other_p in properties_owned)
+                {
+                    if (other_p.get_color().Equals(color))
+                    {
+                        monopolies.Add(other_p);
+                    }
+                }
+            }
+        }
+
+        public void pay_rent(Player owner, int rent)
+        {
+            money -= rent;
+            owner.receive_rent(rent);
+        }
+
+        public void receive_rent(int rent)
+        {
+            money += rent;
+        }
+
         public string get_name()
         {
             return name;
