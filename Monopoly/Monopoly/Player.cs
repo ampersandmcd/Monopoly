@@ -12,6 +12,7 @@ namespace Monopoly
         private string name;
         private int money;
         private int go_value;
+        private int go_bonus;
         private int position;
         private int start_roll;
         private int turns_jailed;
@@ -21,7 +22,7 @@ namespace Monopoly
         private List<Property> railroads;
         private List<Property> utilities;
 
-        public Player(string input_name, string input_character, int start_money, int input_go_value)
+        public Player(string input_name, string input_character, int start_money, int input_go_value, int input_go_bonus)
         {
             name = input_name;
             character = input_character;
@@ -32,6 +33,7 @@ namespace Monopoly
             railroads = new List<Property>();
             utilities = new List<Property>();
             go_value = input_go_value;
+            go_bonus = input_go_bonus;
         }
 
         public void buy(Property property)
@@ -200,17 +202,25 @@ namespace Monopoly
         public void advance(int roll)
         {
             position += roll;
-            if (position >= 40)
+            if (position > 40)
             {
                 money += go_value;
-                Console.WriteLine("Congrats - you passed go, and collected ${0}! You now have ${1}", go_value, money);
+                Console.WriteLine("Congratulations - you passed go, and collected ${0}! You now have ${1}", go_value, money);
+                position -= 40;
+            }
+            else if (position == 40)
+            {
+                money += go_value + go_bonus;
+                Console.WriteLine("Congratulations - you landed on go, and collected ${0} plus a bonus of ${1}! You now have ${2}.", 
+                    go_value, go_bonus, money);
                 position -= 40;
             }
         }
 
         public override string ToString()
         {
-            string message = String.Format("{0} the {1}\nMoney: ${2}\nNet Worth: ${3}\nPosition: {4}\nProperties Owned: ", name, character, money, get_net_worth(), position);
+            string message = String.Format("{0} the {1}\nMoney: ${2}\nNet Worth: ${3}\nPosition: {4}\nProperties Owned: ", 
+                name, character, money, get_net_worth(), position);
             foreach (Property p in properties_owned)
             {
                 message += p.get_name() + ", ";

@@ -43,6 +43,7 @@ namespace Monopoly
 
         static int start_money = 1500;
         static int go_value = 200;
+        static int go_bonus = 200;
         static int num_players = 2;
         static int free_parking_default = 50;
         const int LUXURY_TAX = 75;
@@ -87,6 +88,9 @@ namespace Monopoly
             go_value = input_int("\nPlease enter the desired amount of money earned upon passing go.", 0, Int32.MaxValue);
             Console.WriteLine("Each player will earn ${0} upon passing go.", go_value);
 
+            go_bonus = input_int("\nPlease enter the desired amount of bonus money earned for landing on go.", 0, Int32.MaxValue);
+            Console.WriteLine("Each player will earn a bonus of ${0} for landing on go.", go_bonus);
+
             free_parking_default = input_int("\nPlease enter the desired initial value of free parking.", 0, Int32.MaxValue);
             reset_free_parking();
             Console.WriteLine("The free parking pot will be initialized to ${0} and reset to ${0} after each collection.", free_parking_default);
@@ -111,7 +115,7 @@ namespace Monopoly
                 string character = available_characters[choice];
                 available_characters.RemoveAt(choice);
 
-                players.Add(new Player(name, character, start_money, go_value));
+                players.Add(new Player(name, character, start_money, go_value, go_bonus));
                 Console.WriteLine("Welcome, {0} the {1}!", name, character);
             }
 
