@@ -35,6 +35,8 @@ namespace Monopoly
 
         static List<Player> players = new List<Player>();
         static List<Property> board = new List<Property>();
+        static List<Card> chance = new List<Card>();
+        static List<Card> chest = new List<Card>();
         static Random dice = new Random();
         static List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
 
@@ -53,14 +55,12 @@ namespace Monopoly
         static int free_parking = free_parking_default;
 
         //////////////////////////////////////////////////////////////////////////
-
-
-
+               
         static void Main(string[] args)
         {
 
             //////////////////////////////////////////////////////////////////////////
-            // parse property file into memory
+            // parse board csv file into memory
 
             string path = @"M:\monopoly\board.csv";
             var parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
@@ -69,13 +69,45 @@ namespace Monopoly
             parser.ReadFields(); // skip first (header) row of CSV
             while (!parser.EndOfData)
             {
-                string[] row = parser.ReadFields()[0].Split(',');
+                string[] row = parser.ReadFields()[0].Split('|');
                 board.Add(new Property(row));
             }
 
             //foreach (Property p in board)
             //{
             //    Console.WriteLine(p + "\n");
+            //}
+            
+            //////////////////////////////////////////////////////////////////////////
+            // parse card csv file into memory
+
+            path = @"M:\monopoly\cards.csv";
+            parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
+            parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+            parser.SetDelimiters(new string[] { ";" });
+            parser.ReadFields(); // skip first (header) row of CSV
+            while (!parser.EndOfData)
+            {
+                string[] row = parser.ReadFields()[0].Split('|');
+                if (row[2].Equals("Chance"))
+                {
+                    chance.Add(new Card(row));
+                }
+                else if (row[2].Equals("Community Chest"))
+                {
+                    chest.Add(new Card(row));
+                }
+            }
+            shuffle_cards(ref chance);
+            shuffle_cards(ref chest);
+
+            //foreach (Card c in chance)
+            //{
+            //    Console.WriteLine(c + "\n");
+            //}
+            //foreach (Card c in chest)
+            //{
+            //    Console.WriteLine(c + "\n");
             //}
 
             //////////////////////////////////////////////////////////////////////////
@@ -667,6 +699,18 @@ namespace Monopoly
             }
             return num;            
         }
-
+        
+        private static void shuffle_cards(ref List<Card> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = dice.Next(n + 1);
+                Card value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
     }
 }

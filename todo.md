@@ -2,16 +2,19 @@
 ~add and test jail~
 ~add and test utility and railroad bonuses~
 ~add and test income tax, luxury tax, and free parking funding from taxes + jail and collection~
+~landing go bonus~
+~trading and monopoly / utility / rr updates~
+~multiplayer bankruptcy and property returns~
 
-# to test as of 5.21
-# REVIEW DOC BEFORE GOING FURTHER
-landing go bonus
-add taxes and free parking pot from tax and jail revenue
-TEST TAXES, NET WORTH, FREE PARKING
 
+# to do as of 5.22 morning
 chance + community chest cards
+    parse DONE
+    force draw and take action like free park or rent
+    configure take action payment and movements - ensure moving to a space passes go as appropriate
+    put back in deck
+
 selling back houses / hotels
 mortgaging properties
-trading properties
 add graphics
 auction
