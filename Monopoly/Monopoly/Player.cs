@@ -118,6 +118,16 @@ namespace Monopoly
             return money;
         }
 
+        public int get_net_worth()
+        {
+            int sum = money;
+            foreach (Property p in properties_owned)
+            {
+                sum += p.get_price() + (p.get_houses() * p.get_price_build());
+            }
+            return sum;
+        }
+
         public List<Property> get_properties()
         {
             return properties_owned;
@@ -200,7 +210,7 @@ namespace Monopoly
 
         public override string ToString()
         {
-            string message = String.Format("{0} the {1}\nNet Worth: {2}\nPosition: {3}\nProperties Owned: ", name, character, money, position);
+            string message = String.Format("{0} the {1}\nMoney: {2}\nNet Worth: {3}\nPosition: {4}\nProperties Owned: ", name, get_net_worth(), character, money, position);
             foreach (Property p in properties_owned)
             {
                 message += p.get_name() + " / ";

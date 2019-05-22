@@ -6,6 +6,7 @@
 # REVIEW DOC BEFORE GOING FURTHER
 landing go bonus
 add taxes and free parking pot from tax and jail revenue
+TEST TAXES, NET WORTH, FREE PARKING
 
 chance + community chest cards
 selling back houses / hotels

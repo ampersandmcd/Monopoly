@@ -23,6 +23,10 @@ namespace Monopoly
         const string OPTION_VIEW_MONOPOLIES = "View owned monopolies";
         const string OPTION_PAY_RENT = "Pay rent";
         const string OPTION_TILE_INFO = "View information about the current tile";
+        const string OPTION_INCOME_TAX_FIXED = "Pay fixed income tax sum";
+        const string OPTION_INCOME_TAX_PCT = "Pay 10% income tax on total net worth";
+        const string OPTION_LUXURY_TAX = "Pay fixed luxury tax";
+        const string OPTION_FREE_PARKING = "Collect free parking";
         const string stars = "*********************************************************";
 
         //////////////////////////////////////////////////////////////////////////
@@ -39,6 +43,11 @@ namespace Monopoly
         static int start_money = 1500;
         static int go_value = 200;
         static int num_players = 2;
+        const int FREE_PARKING_DEFAULT = 50;
+        const int LUXURY_TAX = 75;
+        const int INCOME_TAX = 200;
+        const int INCOME_TAX_PCT = 10;
+        static int free_parking = FREE_PARKING_DEFAULT;
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -233,10 +242,35 @@ namespace Monopoly
             if (board[p.get_position()].get_owner() != null && board[p.get_position()].get_owner() != p &&
                 rent_paid == false && has_rolled == true)
             {
-                //clear all options and force payment
+                //clear all options and force rent payment
                 options.Clear();
                 Console.WriteLine("This property is owned by {0}!", board[p.get_position()].get_owner().get_nickname());
                 options.Add(OPTION_PAY_RENT);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_name().Equals("Income Tax") && rent_paid == false && has_rolled == true)
+            {
+                //clear all options and force income tax payment
+                options.Clear();
+                Console.WriteLine("You must pay income tax!");
+                options.Add(OPTION_INCOME_TAX_FIXED);
+                options.Add(OPTION_INCOME_TAX_PCT);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_name().Equals("Luxury Tax") && rent_paid == false && has_rolled == true)
+            {
+                //clear all options and force luxury tax payment
+                options.Clear();
+                Console.WriteLine("You must pay luxury tax!");
+                options.Add(OPTION_LUXURY_TAX);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_name().Equals("Free Parking") && rent_paid == false && has_rolled == true)
+            {
+                //clear all options and force free parking collection
+                options.Clear();
+                Console.WriteLine("Congratulations! You've landed on free parking!");
+                options.Add(OPTION_FREE_PARKING);
             }
             //////////////////////////////////////////////////////////////////////////
 
@@ -339,6 +373,43 @@ namespace Monopoly
                 p.buy(board[p.get_position()]);
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_INCOME_TAX_FIXED))
+            {
+                rent_paid = true;
+                p.pay(INCOME_TAX);
+                add_free_parking(INCOME_TAX);
+                Console.WriteLine("Thank you for paying ${0} in fixed income tax. You now have ${1}. The free parking pot now has ${2}",
+                    INCOME_TAX, p.get_money(), free_parking);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_INCOME_TAX_PCT))
+            {
+                rent_paid = true;
+                int tax = p.get_net_worth() * (INCOME_TAX_PCT / 100);
+                p.pay(tax);
+                add_free_parking(tax);
+                Console.WriteLine("Thank you for paying ${0} as {1}% income tax. You now have ${2}. The free parking pot now has ${3}", 
+                    tax, INCOME_TAX_PCT, p.get_money(), free_parking);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_LUXURY_TAX))
+            {
+                rent_paid = true;
+                p.pay(LUXURY_TAX);
+                add_free_parking(LUXURY_TAX);
+                Console.WriteLine("Thank you for paying ${0} in fixed luxury tax. You now have ${1}. The free parking pot now has ${2}",
+                    LUXURY_TAX, p.get_money(), free_parking);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_FREE_PARKING))
+            {
+                rent_paid = true;
+                p.receive_rent(get_free_parking());
+                Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}",
+                    get_free_parking(), p.get_money(), FREE_PARKING_DEFAULT);
+                reset_free_parking();
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_VIEW_PROPERTIES))
             {
                 Console.WriteLine("Owned Properties:\n");
@@ -438,6 +509,21 @@ namespace Monopoly
                 doubles = false;
             }
             return roll_one + roll_two;
+        }
+
+        private static int get_free_parking()
+        {
+            return free_parking;
+        }
+
+        private static void reset_free_parking()
+        {
+            free_parking = FREE_PARKING_DEFAULT;
+        }
+
+        private static void add_free_parking(int payment)
+        {
+            free_parking += payment;
         }
 
         private static int input_int(string message, int min, int max)

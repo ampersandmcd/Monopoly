@@ -66,6 +66,11 @@ namespace Monopoly
             return price;
         }
 
+        public int get_price_build()
+        {
+            return price_build;
+        }
+
         public string get_color()
         {
             return color;
