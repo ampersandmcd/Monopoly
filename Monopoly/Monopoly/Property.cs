@@ -98,7 +98,22 @@ namespace Monopoly
             else if (space_type.Equals("Railroad"))
             {
                 int num_railroads = owner.get_railroads().Count;
-                return num_railroads * 50;
+                if (num_railroads == 1)
+                {
+                    return rent[0];
+                }
+                else if (num_railroads == 2)
+                {
+                    return rent[0] * 2;
+                }
+                else if (num_railroads == 3)
+                {
+                    return rent[0] * 4;
+                }
+                else
+                {
+                    return rent[0] * 8;
+                }
             }
             else if (space_type.Equals("Utility"))
             {

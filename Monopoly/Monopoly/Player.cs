@@ -50,8 +50,8 @@ namespace Monopoly
                     color_count++;
                 }
             }
-            if (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) || 
-                color_count == 3)
+            if (property.get_type().Equals("Street") && (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) || 
+                color_count == 3))
             {
                 Console.WriteLine("\nCongrats! You have a monopoly on {0}!", color);
                 foreach (Property other_p in properties_owned)
@@ -62,7 +62,7 @@ namespace Monopoly
                     }
                 }
             }
-            if (property.get_type().Equals("Utilities"))
+            if (property.get_type().Equals("Utility"))
             {
                 utilities.Add(property);
             }

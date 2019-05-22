@@ -257,6 +257,7 @@ namespace Monopoly
                 {
                     Console.WriteLine("You rolled a {0} on doubles!", dice_roll);
                     turn_is_over = false;
+                    rent_paid = false;
                     p.increment_double_count();
                     has_rolled = true;
                     p.advance(dice_roll);
@@ -272,6 +273,7 @@ namespace Monopoly
                 {
                     Console.WriteLine("You rolled a {0}.", dice_roll);
                     turn_is_over = true;
+                    rent_paid = false;
                     has_rolled = true;
                     p.advance(dice_roll);
                 }
@@ -365,7 +367,7 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_TILE_INFO))
             {
-                Console.WriteLine("Current Tile:\n" + board[p.get_position()]);
+                Console.WriteLine("Current Tile:\n\n" + board[p.get_position()]);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_BUILD))
