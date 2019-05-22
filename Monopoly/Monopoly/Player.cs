@@ -43,35 +43,7 @@ namespace Monopoly
             properties_owned.Add(property);
             Console.WriteLine("Congratulations! You now own {0}. Your new bank balance is ${1}. " +
                 "Below is more information about your purchase:\n\n{2}", property.get_name(), money, property);
-            string color = property.get_color();
-            int color_count = 0;
-            foreach (Property other_p in properties_owned) //check if this purchase completed a monopoly
-            {
-                if (other_p.get_color().Equals(color))
-                {
-                    color_count++;
-                }
-            }
-            if (property.get_type().Equals("Street") && (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) || 
-                color_count == 3))
-            {
-                Console.WriteLine("\nCongrats! You have a monopoly on {0}!", color);
-                foreach (Property other_p in properties_owned)
-                {
-                    if (other_p.get_color().Equals(color))
-                    {
-                        monopolies.Add(other_p);
-                    }
-                }
-            }
-            if (property.get_type().Equals("Utility"))
-            {
-                utilities.Add(property);
-            }
-            if (property.get_type().Equals("Railroad"))
-            {
-                railroads.Add(property);
-            }
+            refresh_properties();
         }
 
         public void pay(int amount)
@@ -82,12 +54,12 @@ namespace Monopoly
         public void pay_rent(Player owner, int rent)
         {
             money -= rent;
-            owner.receive_rent(rent);
+            owner.receive_payment(rent);
         }
 
-        public void receive_rent(int rent)
+        public void receive_payment(int payment)
         {
-            money += rent;
+            money += payment;
         }
 
         public string get_name()
@@ -217,19 +189,139 @@ namespace Monopoly
             }
         }
 
-        public override string ToString()
+        public void send_property(Player other, Property property)
         {
-            string message = String.Format("{0} the {1}\nMoney: ${2}\nNet Worth: ${3}\nPosition: {4}\nProperties Owned: ", 
-                name, character, money, get_net_worth(), position);
+            properties_owned.Remove(property);
+
+            //put property in other's posession
+            other.receive_property(property); 
+            property.buy(other);
+
+            refresh_properties();
+        }
+
+        public void receive_property(Property property)
+        {
+            properties_owned.Add(property);
+            refresh_properties();
+        }
+
+        public void refresh_properties()
+        {
+            //clear out any "dummy" blank properties from trades
+            List<Property> to_remove = new List<Property>();
             foreach (Property p in properties_owned)
             {
-                message += p.get_name() + ", ";
+                if (String.IsNullOrWhiteSpace(p.get_name()))
+                {
+                    to_remove.Add(p);
+                }
+            }
+            foreach (Property p in to_remove)
+            {
+                properties_owned.Remove(p);
+            }
+
+            //reset railroad, utility and monopoly counts in case of buy or trade
+            railroads.Clear();
+            utilities.Clear();
+            monopolies.Clear();
+            foreach (Property property in properties_owned)
+            {
+                string color = property.get_color();
+                int color_count = 1;
+                foreach (Property other_p in properties_owned) //check if this purchase completed a monopoly
+                {
+                    if (other_p.get_color().Equals(color) && !property.Equals(other_p))
+                    {
+                        color_count++;
+                    }
+                }
+                if (property.get_type().Equals("Street") && (color_count == 2 && (color.Equals("Blue") || color.Equals("Brown")) ||
+                    color_count == 3))
+                {
+                    foreach (Property other_p in properties_owned)
+                    {
+                        if (other_p.get_color().Equals(color) && monopolies.IndexOf(other_p) == -1) //not in list of monopolies yet
+                        {
+                            monopolies.Add(other_p);
+                        }
+                    }
+                }
+                if (property.get_type().Equals("Utility") && utilities.IndexOf(property) == -1)
+                {
+                    utilities.Add(property);
+                }
+                if (property.get_type().Equals("Railroad") && railroads.IndexOf(property) == -1)
+                {
+                    railroads.Add(property);
+                }
+            }            
+        }
+
+        public override string ToString()
+        {
+
+            string properties_list = "";
+            foreach (Property p in properties_owned)
+            {
+                properties_list += p.get_name() + ", ";
             }
             if (properties_owned.Count > 0)
             {
-                message = message.Substring(0, message.Length - 2); // trim trailing slash
+                properties_list = properties_list.Substring(0, properties_list.Length - 2); // trim trailing slash
             }
+
+            string monopolies_list = "";
+            foreach (Property p in monopolies)
+            {
+                monopolies_list += p.get_name() + ", ";
+            }
+            if (monopolies.Count > 0)
+            {
+                monopolies_list = monopolies_list.Substring(0, monopolies_list.Length - 2); // trim trailing slash
+            }
+
+            string utilities_list = "";
+            foreach (Property p in utilities)
+            {
+                utilities_list += p.get_name() + ", ";
+            }
+            if (utilities.Count > 0)
+            {
+                utilities_list = utilities_list.Substring(0, utilities_list.Length - 2); // trim trailing slash
+            }
+
+            string railroads_list = "";
+            foreach (Property p in railroads)
+            {
+                railroads_list += p.get_name() + ", ";
+            }
+            if (railroads.Count > 0)
+            {
+                railroads_list = railroads_list.Substring(0, railroads_list.Length - 2); // trim trailing slash
+            }
+
+            string message = String.Format(@"{0} the {1}
+Money: ${2}
+Net Worth: ${3}
+Position: {4}
+Properties Owned: {5}
+Monopolies Owned: {6}
+Utilities Owned: {7}
+Railroads Owned: {8}", 
+                name, character, money, get_net_worth(), position, properties_list, monopolies_list, utilities_list, railroads_list);
+            
             return message;
+        }
+
+        public void kill()
+        {
+            //call upon bankruptcy; returns all properties
+            foreach (Property p in properties_owned)
+            {
+                p.return_to_bank();
+            }
         }
     }
 

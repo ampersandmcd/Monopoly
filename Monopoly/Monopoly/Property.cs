@@ -39,6 +39,19 @@ namespace Monopoly
             owner = null;
         }
 
+        public Property()
+        {
+            name = "";
+            space_type = "";
+            color = "";
+            position = 0;
+            price = 0;
+            price_build = 0;
+            num_houses = 0; //0 = no houses, 1 = 1 house, ..., 5 = hotel
+            is_owned = false;
+            owner = null;
+        }
+
         public string get_name()
         {
             return name;
@@ -85,6 +98,7 @@ namespace Monopoly
         {
             return num_houses;
         }
+
 
         public int get_rent(int dice_roll = 0)
         {
@@ -136,6 +150,12 @@ namespace Monopoly
             {
                 return 0;
             }
+        }
+
+        public void return_to_bank()
+        {
+            is_owned = false;
+            owner = null;
         }
 
         public override string ToString()

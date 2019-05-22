@@ -149,6 +149,7 @@ namespace Monopoly
                 List<Player> eliminated_players = new List<Player>();
                 foreach (Player p in players)
                 {
+                    p.refresh_properties();
                     Console.WriteLine("\n{0}\n\nIt is {1} the {2}'s turn.", 
                         stars, p.get_name(), p.get_char());
                     p.reset_double_count();
@@ -175,6 +176,7 @@ namespace Monopoly
                         {
                             Console.WriteLine("\nYou've gone bankrupt! You're eliminated!");
                             eliminated_players.Add(p);
+                            p.kill();
                             turn_ended = true;
                         }
                     }
@@ -419,7 +421,7 @@ namespace Monopoly
             if (action.Equals(OPTION_FREE_PARKING))
             {
                 rent_paid = true;
-                p.receive_rent(get_free_parking());
+                p.receive_payment(get_free_parking());
                 Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}.",
                     get_free_parking(), p.get_money(), free_parking_default);
                 reset_free_parking();
@@ -459,6 +461,104 @@ namespace Monopoly
             if (action.Equals(OPTION_TILE_INFO))
             {
                 Console.WriteLine("Current Tile:\n\n" + board[p.get_position()]);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_TRADE))
+            {
+                rent_paid = true; 
+                //select trading partner
+                Console.WriteLine("With whom would you like to trade?:\n");
+                List<Player> others = new List<Player>();
+                foreach (Player other in players) //compile list of potential trading partners
+                {
+                    if (!p.Equals(other))
+                    {
+                        others.Add(other);
+                    }
+                }
+                for (int i = 0; i < others.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, others[i].get_nickname());
+                }
+                int input = input_int("\nEnter the number corresponding to the desired player.", 0, others.Count - 1);
+                Player trader = others[input];
+
+                //select property to receive
+                Console.WriteLine("Below are the properties owned by {0}:\n", trader.get_nickname());
+                List<Property> trader_properties = trader.get_properties();
+                foreach (Property property in trader_properties)
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                Console.WriteLine("Select the property you would like to receive from {0} from the list below.", trader.get_nickname());
+                for (int i = 0; i < trader_properties.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, trader_properties[i].get_name());
+                }
+                Console.WriteLine("{0}: None", trader_properties.Count);
+                trader_properties.Add(new Property());
+                input = input_int("\nEnter the number corresponding to the desired property.", 0, trader_properties.Count - 1);
+                Property property_to_receive = trader_properties[input];
+
+                //select property to give
+                Console.WriteLine("Below are your properties:\n");
+                List<Property> my_properties = p.get_properties();
+                foreach (Property property in my_properties)
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                Console.WriteLine("Select the property you would like to give up from the list below.");
+                for (int i = 0; i < my_properties.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, my_properties[i].get_name());
+                }
+                Console.WriteLine("{0}: None", my_properties.Count);
+                my_properties.Add(new Property());
+
+                input = input_int("\nEnter the number corresponding to the desired property.", 0, my_properties.Count - 1);
+                Property property_to_give = my_properties[input];
+
+                //determine trade amount
+                Console.WriteLine("Who will be paying whom for this trade?\n");
+                Console.WriteLine("0: I'm paying {0}", trader.get_nickname());
+                Console.WriteLine("1: {0} is paying me", trader.get_nickname());
+                Console.WriteLine("2: No money is being exchanged in this trade");
+                input = input_int("\nEnter the number corresponding to your choice", 0, 2);
+
+                //make trade
+                if (input == 0)
+                {
+                    //p pays trader
+                    int amount = input_int(String.Format("Enter the emount of money you are paying {0} for the trade.", trader.get_nickname()), 0, int.MaxValue);
+                    p.pay(amount);
+                    trader.receive_payment(amount);
+                    p.send_property(trader, property_to_give);
+                    trader.send_property(p, property_to_receive);
+                    Console.WriteLine("Trade successful. Each player's updated status is displayed below:\n");
+                    Console.WriteLine(p + "\n");
+                    Console.WriteLine(trader);
+                }
+                else if (input == 1)
+                {
+                    //trader pays p
+                    int amount = input_int(String.Format("Enter the emount of money {0} is paying for the trade.", trader.get_nickname()), 0, int.MaxValue);
+                    trader.pay(amount);
+                    p.receive_payment(amount);
+                    p.send_property(trader, property_to_give);
+                    trader.send_property(p, property_to_receive);
+                    Console.WriteLine("Trade successful. Each player's updated status is displayed below:\n");
+                    Console.WriteLine(p + "\n");
+                    Console.WriteLine(trader);
+                }
+                else
+                {
+                    //no money is moved; just swap owners
+                    p.send_property(trader, property_to_give);
+                    trader.send_property(p, property_to_receive);
+                    Console.WriteLine("Trade successful. Each player's updated status is displayed below:\n");
+                    Console.WriteLine(p + "\n");
+                    Console.WriteLine(trader);
+                }
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_BUILD))
