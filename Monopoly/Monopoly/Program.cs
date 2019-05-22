@@ -13,7 +13,7 @@ namespace Monopoly
         // configure string command constants
         const string OPTION_ROLL_DICE = "Roll dice";
         const string OPTION_ROLL_DICE_JAIL = "Roll dice (doubles will escape jail)";
-        const string OPTION_PAY_JAIL = "Pay $50 to escape jail";
+        const string OPTION_PAY_JAIL = "Pay to escape jail";
         const string OPTION_MORTGAGE = "Mortgage property";
         const string OPTION_BUILD = "Build house / hotel";
         const string OPTION_TRADE = "Trade property";
@@ -27,6 +27,7 @@ namespace Monopoly
         const string OPTION_INCOME_TAX_PCT = "Pay 10% income tax on total net worth";
         const string OPTION_LUXURY_TAX = "Pay fixed luxury tax";
         const string OPTION_FREE_PARKING = "Collect free parking";
+        const string OPTION_PERSONAL_DATA = "View personal data";
         const string stars = "*********************************************************";
 
         //////////////////////////////////////////////////////////////////////////
@@ -43,11 +44,12 @@ namespace Monopoly
         static int start_money = 1500;
         static int go_value = 200;
         static int num_players = 2;
-        const int FREE_PARKING_DEFAULT = 50;
+        static int free_parking_default = 50;
         const int LUXURY_TAX = 75;
         const int INCOME_TAX = 200;
         const int INCOME_TAX_PCT = 10;
-        static int free_parking = FREE_PARKING_DEFAULT;
+        const int JAIL_FEE = 50;
+        static int free_parking = free_parking_default;
 
         //////////////////////////////////////////////////////////////////////////
 
@@ -85,6 +87,10 @@ namespace Monopoly
             go_value = input_int("\nPlease enter the desired amount of money earned upon passing go.", 0, Int32.MaxValue);
             Console.WriteLine("Each player will earn ${0} upon passing go.", go_value);
 
+            free_parking_default = input_int("\nPlease enter the desired initial value of free parking.", 0, Int32.MaxValue);
+            reset_free_parking();
+            Console.WriteLine("The free parking pot will be initialized to ${0} and reset to ${0} after each collection.", free_parking_default);
+
             num_players = input_int("\nPlease enter the number of players (at least 2, and at most 8) who will be participating.", 2, 8);            
             Console.WriteLine("{0} players will be participating.", num_players);
 
@@ -94,7 +100,7 @@ namespace Monopoly
             {
                 Console.WriteLine("\nPlease enter player {0}'s name.", i+1);
                 string name = Console.ReadLine();
-                Console.WriteLine("\n{0}, please select a character from the following list", name);
+                Console.WriteLine("\n{0}, please select a character from the following list.", name);
                 int index = 0;
                 foreach (string s in available_characters)
                 {
@@ -120,7 +126,7 @@ namespace Monopoly
                 Console.ReadLine();
                 int roll = roll_dice(dice);
                 p.set_start_roll(roll);
-                Console.WriteLine("{0}, you rolled a {1}", p.get_name(), roll);
+                Console.WriteLine("{0}, you rolled a {1}.", p.get_name(), roll);
             }
 
             players.Sort((x, y) => y.get_start_roll().CompareTo(x.get_start_roll())); // sort in descending order of start roll
@@ -149,7 +155,7 @@ namespace Monopoly
                     bool rent_paid = false; //indicates whether player has paid rent (where applicable - see take_action())
                     while (!turn_ended)
                     {
-                        Console.WriteLine("\n***\n\nYou currently are on {0} [index {1}] and have ${2}", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                        Console.WriteLine("\n***\n\nYou currently are on {0} [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
                         List<string> options = generate_options(p, turn_is_over, has_rolled, rent_paid);
                         Console.WriteLine("You may:\n");
                         for (int i = 0; i < options.Count; i++)
@@ -190,6 +196,7 @@ namespace Monopoly
             options.Add(OPTION_VIEW_PROPERTIES);
             options.Add(OPTION_VIEW_MONOPOLIES);
             options.Add(OPTION_TILE_INFO);
+            options.Add(OPTION_PERSONAL_DATA);
             //////////////////////////////////////////////////////////////////////////
             if (p.jailed() == 0) //player has full freedom
             {
@@ -324,8 +331,10 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_PAY_JAIL))
             {
-                p.pay_for_jail();
-                Console.WriteLine("You've successfully paid bond to escape jail. You now have ${0}", p.get_money());
+                p.pay_for_jail(JAIL_FEE);
+                add_free_parking(JAIL_FEE);
+                Console.WriteLine("You've successfully paid ${0} in bond to escape jail. You now have ${1}. The free parking pot now has ${2}",
+                    JAIL_FEE, p.get_money(), free_parking);
                 turn_is_over = true;
             }
             //////////////////////////////////////////////////////////////////////////
@@ -336,7 +345,7 @@ namespace Monopoly
                 if (doubles)
                 {
                     p.release_from_jail();
-                    Console.WriteLine("Congrats! You rolled doubles, and are free from jail!");
+                    Console.WriteLine("Congratulations! You rolled doubles, and are free from jail!");
                     turn_is_over = true;
                 }
                 else
@@ -356,9 +365,9 @@ namespace Monopoly
                 {
                     Player owner = board[p.get_position()].get_owner();
                     p.pay_rent(owner, rent);
-                    Console.WriteLine("Thank you for paying ${0} in rent to {1}", rent, owner.get_nickname());
-                    Console.WriteLine("{0} now has ${1}", owner.get_nickname(), owner.get_money());
-                    Console.WriteLine("{0} now has ${1}", p.get_nickname(), p.get_money());
+                    Console.WriteLine("Thank you for paying ${0} in rent to {1}.", rent, owner.get_nickname());
+                    Console.WriteLine("{0} now has ${1}.", owner.get_nickname(), owner.get_money());
+                    Console.WriteLine("{0} now has ${1}.", p.get_nickname(), p.get_money());
                 }
                 else
                 {
@@ -378,18 +387,20 @@ namespace Monopoly
                 rent_paid = true;
                 p.pay(INCOME_TAX);
                 add_free_parking(INCOME_TAX);
-                Console.WriteLine("Thank you for paying ${0} in fixed income tax. You now have ${1}. The free parking pot now has ${2}",
+                Console.WriteLine("Thank you for paying ${0} in fixed income tax. You now have ${1}. The free parking pot now has ${2}.",
                     INCOME_TAX, p.get_money(), free_parking);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_INCOME_TAX_PCT))
             {
                 rent_paid = true;
-                int tax = p.get_net_worth() * (INCOME_TAX_PCT / 100);
+                int net_worth = p.get_net_worth();
+                int tax = Convert.ToInt32((double)net_worth * ((double)INCOME_TAX_PCT / 100.0));
                 p.pay(tax);
                 add_free_parking(tax);
-                Console.WriteLine("Thank you for paying ${0} as {1}% income tax. You now have ${2}. The free parking pot now has ${3}", 
-                    tax, INCOME_TAX_PCT, p.get_money(), free_parking);
+                Console.WriteLine("Thank you for paying ${0} as {1}% income tax on your net worth of ${2}. You now have ${3}. " +
+                    "The free parking pot now has ${4}.", 
+                    tax, INCOME_TAX_PCT, net_worth, p.get_money(), free_parking);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_LUXURY_TAX))
@@ -397,7 +408,7 @@ namespace Monopoly
                 rent_paid = true;
                 p.pay(LUXURY_TAX);
                 add_free_parking(LUXURY_TAX);
-                Console.WriteLine("Thank you for paying ${0} in fixed luxury tax. You now have ${1}. The free parking pot now has ${2}",
+                Console.WriteLine("Thank you for paying ${0} in fixed luxury tax. You now have ${1}. The free parking pot now has ${2}.",
                     LUXURY_TAX, p.get_money(), free_parking);
             }
             //////////////////////////////////////////////////////////////////////////
@@ -405,8 +416,8 @@ namespace Monopoly
             {
                 rent_paid = true;
                 p.receive_rent(get_free_parking());
-                Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}",
-                    get_free_parking(), p.get_money(), FREE_PARKING_DEFAULT);
+                Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}.",
+                    get_free_parking(), p.get_money(), free_parking_default);
                 reset_free_parking();
             }
             //////////////////////////////////////////////////////////////////////////
@@ -421,6 +432,11 @@ namespace Monopoly
                 {
                     Console.WriteLine("You do not own any properties.");
                 }
+            }//////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_PERSONAL_DATA))
+            {
+                Console.WriteLine("Personal Data:\n");
+                Console.WriteLine(p.ToString());
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_VIEW_MONOPOLIES))
@@ -445,7 +461,7 @@ namespace Monopoly
             {
                 List<Property> monopolies = p.get_monopolies();
                 List<Property> buildable = new List<Property>();
-                Console.WriteLine("You may build on one of the following properties\n");
+                Console.WriteLine("You may build on one of the following properties:\n");
                 foreach (Property property in monopolies)
                 {
                     if (property.get_houses() < 5)
@@ -468,13 +484,13 @@ namespace Monopoly
                     if (property.get_houses() < 5)
                     {
                         // houses
-                        Console.WriteLine("Congratulations! {0} now has {1} houses on it.", property.get_name(), property.get_houses());
+                        Console.WriteLine("Congratulations! {0} now has {1} houses on it. You now have ${2}.", property.get_name(), property.get_houses(), p.get_money());
 
                     }
                     else
                     {
                         // hotel
-                        Console.WriteLine("Congratulations! {0} now has a hotel on it! You may not build any further on this property.", property.get_name());
+                        Console.WriteLine("Congratulations! {0} now has a hotel on it! You may not build any further on this property. You now have ${1}.", property.get_name(), p.get_money());
                     }
                 }
                 else
@@ -518,7 +534,7 @@ namespace Monopoly
 
         private static void reset_free_parking()
         {
-            free_parking = FREE_PARKING_DEFAULT;
+            free_parking = free_parking_default;
         }
 
         private static void add_free_parking(int payment)
@@ -539,7 +555,7 @@ namespace Monopoly
                 }
                 else
                 {
-                    Console.WriteLine("Please enter an integral value between {0} and {1}", min, max);
+                    Console.WriteLine("Please enter an integral value between {0} and {1}.", min, max);
                 }
             }
             return num;            

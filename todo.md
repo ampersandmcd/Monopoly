@@ -1,6 +1,7 @@
 ~add house construction~
-~test jail~
-~test utility and railroad bonuses~
+~add and test jail~
+~add and test utility and railroad bonuses~
+~add and test income tax, luxury tax, and free parking funding from taxes + jail and collection~
 
 # to test as of 5.21
 # REVIEW DOC BEFORE GOING FURTHER

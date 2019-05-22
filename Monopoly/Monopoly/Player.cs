@@ -190,11 +190,11 @@ namespace Monopoly
             turns_jailed = 0;
         }
 
-        public void pay_for_jail()
+        public void pay_for_jail(int payment)
         {
             position = 10;
             turns_jailed = 0;
-            money -= 50;
+            money -= payment;
         }
 
         public void advance(int roll)
@@ -210,12 +210,15 @@ namespace Monopoly
 
         public override string ToString()
         {
-            string message = String.Format("{0} the {1}\nMoney: {2}\nNet Worth: {3}\nPosition: {4}\nProperties Owned: ", name, get_net_worth(), character, money, position);
+            string message = String.Format("{0} the {1}\nMoney: ${2}\nNet Worth: ${3}\nPosition: {4}\nProperties Owned: ", name, character, money, get_net_worth(), position);
             foreach (Property p in properties_owned)
             {
-                message += p.get_name() + " / ";
+                message += p.get_name() + ", ";
             }
-            message = message.Substring(0, message.Length - 3); // trim trailing slash
+            if (properties_owned.Count > 0)
+            {
+                message = message.Substring(0, message.Length - 2); // trim trailing slash
+            }
             return message;
         }
     }
