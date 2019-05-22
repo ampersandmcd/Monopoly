@@ -62,7 +62,7 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             // parse property file into memory
 
-            string path = @"M:\monopoly\beginner_board.csv";
+            string path = @"M:\monopoly\board.csv";
             var parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
             parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
             parser.SetDelimiters(new string[] { ";" });
