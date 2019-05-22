@@ -102,6 +102,11 @@ namespace Monopoly
 
         public int get_rent(int dice_roll = 0)
         {
+            if (owner == null)
+            {
+                return rent[num_houses];
+            }
+
             if (space_type.Equals("Street"))
             {
                 if (owner.get_monopolies().IndexOf(this) != -1 && num_houses == 0)
@@ -129,9 +134,13 @@ namespace Monopoly
                 {
                     return rent[0] * 4;
                 }
-                else
+                else if (num_railroads == 4)
                 {
                     return rent[0] * 8;
+                }
+                else
+                {
+                    return rent[0];
                 }
             }
             else if (space_type.Equals("Utility"))
@@ -156,6 +165,7 @@ namespace Monopoly
         {
             is_owned = false;
             owner = null;
+            num_houses = 0;
         }
 
         public override string ToString()

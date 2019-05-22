@@ -160,6 +160,17 @@ namespace Monopoly
                     bool rent_paid = false; //indicates whether player has paid rent (where applicable - see take_action())
                     while (!turn_ended)
                     {
+                        //check before every action that player is still valid
+                        if (p.get_money() <= 0)
+                        {
+                            Console.WriteLine("\nYou've gone bankrupt! You're eliminated!");
+                            eliminated_players.Add(p);
+                            p.kill();
+                            turn_ended = true;
+                            break;
+                        }
+
+                        //run turn
                         Console.WriteLine("\n***\n\nYou currently are on {0} [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
                         List<string> options = generate_options(p, turn_is_over, has_rolled, rent_paid);
                         Console.WriteLine("You may:\n");
@@ -168,17 +179,7 @@ namespace Monopoly
                             Console.WriteLine("{0}: {1}", i, options[i]);
                         }
                         int choice = input_int("\nEnter the number corresponding to the desired action.", 0, options.Count - 1);
-                        take_action(p, options, choice, ref turn_is_over, ref has_rolled, ref turn_ended, ref rent_paid, ref dice_roll);
-                        
-
-                        //check after every action that player is still valid
-                        if (p.get_money() <= 0)
-                        {
-                            Console.WriteLine("\nYou've gone bankrupt! You're eliminated!");
-                            eliminated_players.Add(p);
-                            p.kill();
-                            turn_ended = true;
-                        }
+                        take_action(p, options, choice, ref turn_is_over, ref has_rolled, ref turn_ended, ref rent_paid, ref dice_roll);             
                     }
                     if (players.Count - eliminated_players.Count <= 1)
                     {
@@ -191,7 +192,7 @@ namespace Monopoly
                     players.Remove(p);
                 }
             }
-            Console.WriteLine("\n{0}\nGAME OVER!\n{1} the {2} wins!", stars, players[0].get_name(), players[0].get_char());
+            Console.WriteLine("\n\n{0}\nGAME OVER!\n{1} the {2} wins!", stars, players[0].get_name(), players[0].get_char());
             Console.ReadLine();
         }
 
@@ -438,7 +439,8 @@ namespace Monopoly
                 {
                     Console.WriteLine("You do not own any properties.");
                 }
-            }//////////////////////////////////////////////////////////////////////////
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_PERSONAL_DATA))
             {
                 Console.WriteLine("Personal Data:\n");
@@ -652,6 +654,7 @@ namespace Monopoly
             int num;
             while (true)
             {
+                
                 if (Int32.TryParse(Console.ReadLine(), out num) && num >= min && num <= max)
                 {
                     Console.WriteLine("\n***\n");
