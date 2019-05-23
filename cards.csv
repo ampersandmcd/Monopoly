@@ -1,35 +1,35 @@
 id|tag|type|category|name|description|effect
-1|ADVGO|Chance|move|Advance to Go|Collect $200.|0
-2|ADVIA|Chance|move|Advance to Illinois Ave.|If you pass Go - collect $200.|24
-3|ADVSC|Chance|move|Advance to St. Charles Place|If you pass Go - collect $200.|11
-4|ADVNU|Chance|move|Advance to nearest Utility|If Utility is unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown.|10
-5|ADVNR|Chance|move|Advance to nearest Railroad|If Railroad is unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which he/she is otherwise entitled. |2
-6|ADVNR|Chance|move|Advance to nearest Railroad|If Railroad is unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which he/she is otherwise entitled. |2
-7|BANKD|Chance|money|Bank pays you dividend of $50|You gain $50.|50
 8|GETJF|Chance|item|Get out of Jail Free|This card may be kept until needed, or traded/sold.|0
-9|GOBTS|Chance|move|Go Back 3 Spaces|You move back 3 spaces.|-3
-10|GOTOJ|Chance|move|Go to Jail|Do not pass Go, do not collect $200.|10
-11|GENRP|Chance|money|Make General Repairs|For each house you own, you pay $25 - For each hotel, $100 .|0
+22|GETJF|Community Chest|item|Get out of Jail Free|This card may be kept until needed, or traded/sold.|0
+7|BANKD|Chance|money|Bank pays you dividend of $50|You gain $50.|50
 12|POORT|Chance|money|Pay poor tax of $15|Pay $15.|-15
-13|ADVRR|Chance|move|Take a trip to Reading Railroad|If you pass Go - collect $200.|5
-14|ADVBW|Chance|move|Take a walk on the Boardwalk|Advance token to Boardwalk.|39
-15|CHBRD|Chance|money|You have been elected Chairman of the Board|Pay each player $50.|50
 16|BALMT|Chance|money|Your building and loan matures|Collect $150.|150
 17|CROSS|Chance|money|You have won a crossword competition|Collect $100.|100
 18|ADVGO|Community Chest|money|Advance to Go|Collect $200.|200
 19|BANKE|Community Chest|money|Bank error in your favor|Collect $200.|200
 20|DOCTF|Community Chest|money|Doctor's Fees|Pay $50.|-50
 21|SALES|Community Chest|money|From sale of stock you get $50|Collect $50.|50
-22|GETJF|Community Chest|item|Get out of Jail Free|This card may be kept until needed, or traded/sold.|0
-23|GOTOJ|Community Chest|move|Go to Jail|Do not pass Go, do not collect $200.|10
-24|GRDON|Community Chest|money|Grand Opera Night|Collect $50 from every player for opening night seats.|50
 25|HOLFM|Community Chest|money|Holiday Fund matures|Receive $100.|100
 26|INCTR|Community Chest|money|Income Tax Refund|Collect $20.|20
-27|YBDAY|Community Chest|money|It is your Birthday|Collect $10 from each player.|10
 28|LINSM|Community Chest|money|Life Insurance Matures|Collect $100.|100
 29|HOSPF|Community Chest|money|Pay hospital fees of $100|Pay $100.|-100
 30|SCHLF|Community Chest|money|Pay school fees of $150|Pay $150.|-150
 31|CONSF|Community Chest|money|Receive $25 consultancy fee|Collect $25|25
-32|STRRP|Community Chest|money|Assessed for street repairs|You are assessed for street repairs - $40 per house - $115 per hotel.|0
 33|BEUTP|Community Chest|money|You have won second prize in a beauty contest|Collect $10|10
 34|INHRT|Community Chest|money|You inherit $100|Collect $100|100
+11|GENRP|Chance|money_houses|Make General Repairs|For each house you own, you pay $25 - For each hotel, $100 .|0
+32|STRRP|Community Chest|money_houses|Assessed for street repairs|You are assessed for street repairs - $40 per house - $115 per hotel.|0
+15|CHBRD|Chance|money_players|You have been elected Chairman of the Board|Pay each player $50.|-50
+24|GRDON|Community Chest|money_players|Grand Opera Night|Collect $50 from every player for opening night seats.|50
+27|YBDAY|Community Chest|money_players|It is your Birthday|Collect $10 from each player.|10
+1|ADVGO|Chance|move|Advance to Go|Collect $200.|0
+2|ADVIA|Chance|move|Advance to Illinois Ave.|If you pass Go - collect $200.|24
+3|ADVSC|Chance|move|Advance to St. Charles Place|If you pass Go - collect $200.|11
+4|ADVNU|Chance|move|Advance to nearest Utility|If Utility is unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown.|10
+5|ADVNR|Chance|move|Advance to nearest Railroad|If Railroad is unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which he/she is otherwise entitled. |2
+6|ADVNR|Chance|move|Advance to nearest Railroad|If Railroad is unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which he/she is otherwise entitled. |2
+9|GOBTS|Chance|move_abs|Go Back 3 Spaces|You move back 3 spaces.|-3
+10|GOTOJ|Chance|move_jail|Go to Jail|Do not pass Go, do not collect $200.|10
+13|ADVRR|Chance|move|Take a trip to Reading Railroad|If you pass Go - collect $200.|5
+14|ADVBW|Chance|move|Take a walk on the Boardwalk|Advance token to Boardwalk.|39
+23|GOTOJ|Community Chest|move_jail|Go to Jail|Do not pass Go, do not collect $200.|10

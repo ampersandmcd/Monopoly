@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly
 {
-    class Card
+    public class Card
     {
         private string tag;
         private string type;
@@ -24,6 +24,21 @@ namespace Monopoly
             name = attributes[4];
             description = attributes[5];
             effect = Convert.ToInt32(attributes[6]);
+        }
+
+        public string get_tag()
+        {
+            return tag;
+        }
+
+        public string get_category()
+        {
+            return category;
+        }
+
+        public int get_effect()
+        {
+            return effect;
         }
 
         public override string ToString()

@@ -28,6 +28,9 @@ namespace Monopoly
         const string OPTION_LUXURY_TAX = "Pay fixed luxury tax";
         const string OPTION_FREE_PARKING = "Collect free parking";
         const string OPTION_PERSONAL_DATA = "View personal data";
+        const string OPTION_CHANCE = "Draw a chance card";
+        const string OPTION_CHEST = "Draw a community chest card";
+
         const string stars = "*********************************************************";
 
         //////////////////////////////////////////////////////////////////////////
@@ -319,6 +322,20 @@ namespace Monopoly
                 options.Add(OPTION_FREE_PARKING);
             }
             //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_name().Equals("Chance") && rent_paid == false && has_rolled == true)
+            {
+                //clear all options and force chance draw
+                options.Clear();
+                options.Add(OPTION_CHANCE);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (board[p.get_position()].get_name().Equals("Community Chest") && rent_paid == false && has_rolled == true)
+            {
+                //clear all options and force community chest draw
+                options.Clear();
+                options.Add(OPTION_CHEST);
+            }
+            //////////////////////////////////////////////////////////////////////////
 
             return options;
         }
@@ -458,6 +475,60 @@ namespace Monopoly
                 Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}.",
                     get_free_parking(), p.get_money(), free_parking_default);
                 reset_free_parking();
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_CHANCE))
+            {
+                rent_paid = true;
+                bool has_moved = false;
+                // do chance draw from front of queue then replace at back of queue
+                Console.WriteLine("You've drawn the following Chance card:");
+                Card draw = chance[0];
+                Console.WriteLine(draw);
+                chance.Remove(draw);
+                if (!draw.get_category().Equals("item"))
+                {
+                    chance.Add(draw); // add back to end of queue if NOT get out of jail free card; else, player keeps get out of jail free card
+                }
+                int parking_addition = p.take_card_action(draw, ref players, ref has_moved);
+                add_free_parking(parking_addition);
+                if (has_moved)
+                {
+                    has_rolled = true;
+                    rent_paid = false;
+                }
+                Console.WriteLine("Chance action successfully taken. The new status of each player is displayed below.");
+                foreach (Player other in players)
+                {
+                    Console.WriteLine(other + "\n");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_CHEST))
+            {
+                rent_paid = true;
+                bool has_moved = false;
+                // do chest draw from front of queue then replace at back of queue
+                Console.WriteLine("You've drawn the following Community Chest card:");
+                Card draw = chest[0];
+                Console.WriteLine(draw);
+                chest.Remove(draw);
+                if (!draw.get_category().Equals("item"))
+                {
+                    chance.Add(draw); // add back to end of queue if NOT get out of jail free card; else, player keeps get out of jail free card
+                }
+                int parking_addition = p.take_card_action(draw, ref players, ref has_moved);
+                add_free_parking(parking_addition);
+                if (has_moved)
+                {
+                    has_rolled = true;
+                    rent_paid = false;
+                }
+                Console.WriteLine("Community Chest action successfully taken. The new status of each player is displayed below.");
+                foreach (Player other in players)
+                {
+                    Console.WriteLine(other + "\n");
+                }
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_VIEW_PROPERTIES))

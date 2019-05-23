@@ -17,6 +17,7 @@ namespace Monopoly
         private int start_roll;
         private int turns_jailed;
         private int double_count;
+        private Card get_out_of_jail_free;
         private List<Property> properties_owned;
         private List<Property> monopolies;
         private List<Property> railroads;
@@ -34,6 +35,7 @@ namespace Monopoly
             utilities = new List<Property>();
             go_value = input_go_value;
             go_bonus = input_go_bonus;
+            get_out_of_jail_free = null;
         }
 
         public void buy(Property property)
@@ -187,6 +189,10 @@ namespace Monopoly
                     go_value, go_bonus, money);
                 position -= 40;
             }
+            else if (position < 0)
+            {
+                position += 40; // could occur on chance drawing with move backwards card
+            }
         }
 
         public void send_property(Player other, Property property)
@@ -204,6 +210,123 @@ namespace Monopoly
         {
             properties_owned.Add(property);
             refresh_properties();
+        }
+
+        public int take_card_action(Card card, ref List<Player> players, ref bool has_moved) //return amount of money going to free parking
+        {
+            string category = card.get_category();
+            if (category.Equals("item"))
+            {
+                //only item is get out of jail free card
+                get_out_of_jail_free = card;
+                return 0;
+            }
+            else if (category.Equals("move"))
+            {
+                //move forward to a select index
+                has_moved = true;
+                int goto_index = card.get_effect();
+                int distance = goto_index - position;
+                if (distance < 0)
+                {
+                    distance += 40; //ensure movement is forward
+                }
+                advance(distance);
+                return 0;
+            }
+            else if (category.Equals("move_abs"))
+            {
+                //move absolute distance from current pos
+                has_moved = true;
+                int distance = card.get_effect();
+                advance(distance);
+                return 0;
+            }
+            else if (category.Equals("move_jail"))
+            {
+                //go to jail
+                go_to_jail();
+                return 0;
+            }
+            else if (category.Equals("money"))
+            {
+                int amount = card.get_effect();
+                //gain or lose money to free parking
+                if (amount > 0)
+                {
+                    //receive money from bank
+                    money += amount;
+                    return 0;
+                }
+                else
+                {
+                    //pay positive money to free parking from personal finances
+                    amount = Math.Abs(amount);
+                    money -= amount;
+                    return amount;
+                }
+            }
+            else if (category.Equals("money_houses"))
+            {
+                //pay based on houses
+                int num_houses = 0;
+                int num_hotels = 0;
+                foreach (Property property in monopolies) //can only have buildings on monopolies
+                {
+                    if (property.get_houses() > 0 && property.get_houses() < 5)
+                    {
+                        num_houses += property.get_houses();
+                    }
+                    else if (property.get_houses() == 5)
+                    {
+                        num_hotels++;
+                    }
+                }
+
+                if (card.get_tag().Equals("GENRP"))
+                {
+                    // cost is $25 per house and $100 per hotel
+                    int amount = (25 * num_houses) + (100 * num_hotels);
+                    money -= amount;
+                    return amount;
+                }
+                else if (card.get_tag().Equals("STRRP"))
+                {
+                    //cost is $40 per house and $115 per hotel
+                    int amount = (40 * num_houses) + (115 * num_hotels);
+                    money -= amount;
+                    return amount;
+                }
+                //shouldn't get here - catch case at end
+            }
+            else if (category.Equals("money_players"))
+            {
+                //pay money to other players
+                int amount = card.get_effect();
+                if (amount > 0)
+                {
+                    //receive money from other players
+                    foreach (Player p in players)
+                    {
+                        p.pay(amount);
+                        money += amount;
+                    }
+                }
+                else
+                {
+                    //pay money to other players
+                    amount = Math.Abs(amount);
+                    foreach (Player p in players)
+                    {
+                        p.receive_payment(amount);
+                        money -= amount;
+                    }
+                }
+                return 0;
+            }
+            //shouldn't get here
+            Console.WriteLine("Something's wrong -- card category not recognized.");
+            return 0;
         }
 
         public void refresh_properties()
@@ -309,8 +432,10 @@ Position: {4}
 Properties Owned: {5}
 Monopolies Owned: {6}
 Utilities Owned: {7}
-Railroads Owned: {8}", 
-                name, character, money, get_net_worth(), position, properties_list, monopolies_list, utilities_list, railroads_list);
+Railroads Owned: {8}
+Get Out of Jail Free: {9}", 
+                name, character, money, get_net_worth(), position, properties_list, monopolies_list, utilities_list, railroads_list,
+                (get_out_of_jail_free == null) ? "Not Owned" : "Owned");
             
             return message;
         }

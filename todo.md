@@ -8,6 +8,7 @@
 
 
 # to do as of 5.22 morning
+# CHECK MATTERMOST FOR HOUSE BUILDING RULES
 chance + community chest cards
     parse DONE
     force draw and take action like free park or rent
