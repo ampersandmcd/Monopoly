@@ -95,6 +95,12 @@ namespace Monopoly
             owner.pay(price_build);
         }
 
+        public void sell_house()
+        {
+            num_houses--;
+            owner.receive_payment(price_build / 2);
+        }
+
         public int get_price()
         {
             return price;

@@ -17,6 +17,7 @@ namespace Monopoly
         const string OPTION_JAIL_CARD = "Use get out of jail free card";
         const string OPTION_MORTGAGE = "Mortgage property";
         const string OPTION_BUILD = "Build house / hotel";
+        const string OPTION_SELL_HOUSE = "Sell house / hotel";
         const string OPTION_TRADE = "Trade property";
         const string OPTION_BUY = "Buy property";
         const string OPTION_END_TURN = "End turn";
@@ -100,8 +101,8 @@ namespace Monopoly
                     chest.Add(new Card(row));
                 }
             }
-            //shuffle_cards(ref chance);
-            //shuffle_cards(ref chest);
+            shuffle_cards(ref chance);
+            shuffle_cards(ref chest);
 
             //////////////////////////////////////////////////////////////////////////
             // configure game settings
@@ -270,6 +271,10 @@ namespace Monopoly
                 if (p.get_monopolies().Count > 0 && bank_houses > 0 && bank_hotels > 0)
                 {
                     options.Add(OPTION_BUILD);
+                    if (p.get_house_properties().Count > 0)
+                    {
+                        options.Add(OPTION_SELL_HOUSE);
+                    }
                 }
             }
             else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll or use card to get out of jail
@@ -651,6 +656,7 @@ Owned Properties: {6}
 Available Properties: {7}
 
 Active Players: {8}
+
 Detailed Player Information:
 
 {9}", free_parking, free_parking_default, go_value, go_bonus, bank_houses, bank_hotels, owned_properties, 
@@ -678,8 +684,9 @@ available_properties, active_players, detailed_players);
                 Player trader = others[input];
 
                 //select property to receive
-                Console.WriteLine("Below are the properties owned by {0}:\n", trader.get_nickname());
-                List<Property> trader_properties = trader.get_properties();
+                Console.WriteLine("Below are the properties owned by {0} available for trading:\n", trader.get_nickname());
+                List<Property> trader_properties = trader.get_tradable_properties();
+                
                 foreach (Property property in trader_properties)
                 {
                     Console.WriteLine(property + "\n");
@@ -695,8 +702,8 @@ available_properties, active_players, detailed_players);
                 Property property_to_receive = trader_properties[input];
 
                 //select property to give
-                Console.WriteLine("Below are your properties:\n");
-                List<Property> my_properties = p.get_properties();
+                Console.WriteLine("Below are your properties available for trading:\n");
+                List<Property> my_properties = p.get_tradable_properties();
                 foreach (Property property in my_properties)
                 {
                     Console.WriteLine(property + "\n");
@@ -796,6 +803,43 @@ available_properties, active_players, detailed_players);
                 else
                 {
                     Console.WriteLine("House building cancelled.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_SELL_HOUSE))
+            {
+                List<Property> sellable = p.get_house_properties();
+
+                Console.WriteLine("You may sell a house / hotel from one of the following properties:\n");
+                foreach (Property property in sellable)
+                {
+                    Console.WriteLine(property + "\n");                   
+                }
+                Console.WriteLine("\nSelect a property from the list below to sell from:");
+                for (int i = 0; i < sellable.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, sellable[i].get_name());
+                }
+                Console.WriteLine("{0}: Cancel", sellable.Count);
+                int number = input_int("\nEnter the number corresponding to the desired action.", 0, sellable.Count);
+                if (number < sellable.Count)
+                {
+                    Property property = sellable[number];
+                    if (property.get_houses() == 5)
+                    {
+                        bank_hotels++;
+                        bank_houses -= 4;
+                    }
+                    else
+                    {
+                        bank_houses++;
+                    }
+                    property.sell_house();                    
+                    Console.WriteLine("{0} now has {1} houses on it. You now have ${2}.", property.get_name(), property.get_houses(), p.get_money());
+                }
+                else
+                {
+                    Console.WriteLine("House / hotel selling cancelled.");
                 }
             }
             //////////////////////////////////////////////////////////////////////////

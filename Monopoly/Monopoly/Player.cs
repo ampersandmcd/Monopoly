@@ -114,6 +114,35 @@ namespace Monopoly
             return monopolies;
         }
 
+        public List<Property> get_house_properties()
+        {
+            refresh_properties();
+            List<Property> house_properties = new List<Property>();
+            foreach (Property p in monopolies)
+            {
+                if (p.get_houses() > 0)
+                {
+                    house_properties.Add(p);
+                }
+            }
+            return house_properties;
+        }
+
+        public List<Property> get_tradable_properties()
+        {
+            List<Property> tradable = new List<Property>();
+            List<Property> house_properties = get_house_properties();
+            foreach (Property p in properties_owned)
+            {
+                if (house_properties.IndexOf(p) == -1)
+                {
+                    //only add properties to tradable list if they don't have houses
+                    tradable.Add(p);
+                }
+            }
+            return tradable;
+        }
+
         public List<Property> get_railroads()
         {
             return railroads;
