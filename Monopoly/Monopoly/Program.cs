@@ -31,7 +31,7 @@ namespace Monopoly
         const string OPTION_PERSONAL_DATA = "View personal data";
         const string OPTION_CHANCE = "Draw a chance card";
         const string OPTION_CHEST = "Draw a community chest card";
-        const string OPTION_BOARD_INFO = "View global board information"
+        const string OPTION_BOARD_INFO = "View global board information";
 
         const string stars = "*********************************************************";
 
@@ -620,19 +620,41 @@ namespace Monopoly
                 foreach (Player other in players)
                 {
                     active_players += other.get_nickname() + ", ";
-                    detailed_players += other.ToString() + "\n";
+                    detailed_players += other.ToString() + "\n\n";
                 }
-                available_properties = available_properties.Substring(0, available_properties.Length - 2);
-                owned_properties = owned_properties.Substring(0, owned_properties.Length - 2);
-                active_players = active_players.Substring(0, active_players.Length - 2);             
+                if (available_properties.Length > 0)
+                {
+                    available_properties = available_properties.Substring(0, available_properties.Length - 2);
+                }
+                if (owned_properties.Length > 0)
+                {
+                    owned_properties = owned_properties.Substring(0, owned_properties.Length - 2);
+                }
+                if (active_players.Length > 0)
+                {
+                    active_players = active_players.Substring(0, active_players.Length - 2);
+                }
+                if (detailed_players.Length > 0)
+                {
+                    detailed_players = detailed_players.Substring(0, detailed_players.Length - 2);
+                }
                 Console.WriteLine("Global Board Information:\n");
                 Console.WriteLine(@"Free Parking: ${0}
-Number of Houses in Bank: {1}
-Number of Hotels in Bank: {2}
-Owned Properties: {3}
-Available Properties: {4}
-Active Players: {5}
-Detailed Player Information: {6}", free_parking, bank_houses, bank_hotels, owned_properties, available_properties, active_players, detailed_players);
+Free Parking Default: ${1}
+Passing Go Value: ${2}
+Landing on Go Bonus: ${3}
+Number of Houses in Bank: {4}
+Number of Hotels in Bank: {5}
+
+Owned Properties: {6}
+
+Available Properties: {7}
+
+Active Players: {8}
+Detailed Player Information:
+
+{9}", free_parking, free_parking_default, go_value, go_bonus, bank_houses, bank_hotels, owned_properties, 
+available_properties, active_players, detailed_players);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_TRADE))
