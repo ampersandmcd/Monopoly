@@ -31,6 +31,7 @@ namespace Monopoly
         const string OPTION_PERSONAL_DATA = "View personal data";
         const string OPTION_CHANCE = "Draw a chance card";
         const string OPTION_CHEST = "Draw a community chest card";
+        const string OPTION_BOARD_INFO = "View global board information"
 
         const string stars = "*********************************************************";
 
@@ -57,6 +58,8 @@ namespace Monopoly
         const int INCOME_TAX_PCT = 10;
         const int JAIL_FEE = 50;
         static int free_parking = free_parking_default;
+        static int bank_houses = 32;
+        static int bank_hotels = 12;
 
         //////////////////////////////////////////////////////////////////////////
                
@@ -239,6 +242,7 @@ namespace Monopoly
             options.Add(OPTION_VIEW_PROPERTIES);
             options.Add(OPTION_VIEW_MONOPOLIES);
             options.Add(OPTION_TILE_INFO);
+            options.Add(OPTION_BOARD_INFO);
             options.Add(OPTION_PERSONAL_DATA);
             //////////////////////////////////////////////////////////////////////////
             if (p.jailed() == 0) //player has full freedom
@@ -263,7 +267,7 @@ namespace Monopoly
                     options.Add(OPTION_MORTGAGE);
                 }
                 //////////////////////////////////////////////////////////////////////////
-                if (p.get_monopolies().Count > 0)
+                if (p.get_monopolies().Count > 0 && bank_houses > 0 && bank_hotels > 0)
                 {
                     options.Add(OPTION_BUILD);
                 }
@@ -593,6 +597,44 @@ namespace Monopoly
                 Console.WriteLine("Current Tile:\n\n" + board[p.get_position()]);
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_BOARD_INFO))
+            {
+                string available_properties = "";
+                string owned_properties = "";
+                string active_players = "";
+                string detailed_players = "";
+                foreach (Property property in board)
+                {
+                    if (property.get_type().Equals("Street") || property.get_type().Equals("Railroad") || property.get_type().Equals("Utility"))
+                    {
+                        if (property.get_owner() == null)
+                        {
+                            available_properties += property.get_name() + ", ";
+                        }
+                        else
+                        {
+                            owned_properties += property.get_name() + ", ";
+                        }
+                    }
+                }
+                foreach (Player other in players)
+                {
+                    active_players += other.get_nickname() + ", ";
+                    detailed_players += other.ToString() + "\n";
+                }
+                available_properties = available_properties.Substring(0, available_properties.Length - 2);
+                owned_properties = owned_properties.Substring(0, owned_properties.Length - 2);
+                active_players = active_players.Substring(0, active_players.Length - 2);             
+                Console.WriteLine("Global Board Information:\n");
+                Console.WriteLine(@"Free Parking: ${0}
+Number of Houses in Bank: {1}
+Number of Hotels in Bank: {2}
+Owned Properties: {3}
+Available Properties: {4}
+Active Players: {5}
+Detailed Player Information: {6}", free_parking, bank_houses, bank_hotels, owned_properties, available_properties, active_players, detailed_players);
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_TRADE))
             {
                 rent_paid = true; 
@@ -698,7 +740,7 @@ namespace Monopoly
                 Console.WriteLine("You may build on one of the following properties:\n");
                 foreach (Property property in monopolies)
                 {
-                    if (property.get_houses() < 5)
+                    if (property.get_houses() < 5 && property.is_buildable(monopolies))
                     {
                         Console.WriteLine(property + "\n");
                         buildable.Add(property);
@@ -719,12 +761,14 @@ namespace Monopoly
                     {
                         // houses
                         Console.WriteLine("Congratulations! {0} now has {1} houses on it. You now have ${2}.", property.get_name(), property.get_houses(), p.get_money());
-
+                        bank_houses--;
                     }
                     else
                     {
                         // hotel
                         Console.WriteLine("Congratulations! {0} now has a hotel on it! You may not build any further on this property. You now have ${1}.", property.get_name(), p.get_money());
+                        bank_houses += 4;
+                        bank_hotels--;
                     }
                 }
                 else

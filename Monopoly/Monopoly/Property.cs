@@ -68,6 +68,27 @@ namespace Monopoly
             is_owned = true;
         }
 
+        public bool is_buildable(List<Property> monopolies)
+        {
+            int min_houses = num_houses; //minimum number of houses in a color group
+            foreach (Property p in monopolies)
+            {
+                if (p.get_color().Equals(color) && p.get_houses() < min_houses)
+                {
+                    min_houses = p.get_houses();
+                }
+            }
+            if (min_houses < num_houses)
+            {
+                //can't build on this property; there is another property in the color set that needs more houses first
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         public void build()
         {
             num_houses++;
