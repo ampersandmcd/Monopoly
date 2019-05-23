@@ -173,6 +173,26 @@ namespace Monopoly
             money -= payment;
         }
 
+        public bool has_jail_free_card()
+        {
+            if (get_out_of_jail_free == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public Card use_jail_free_card()
+        {
+            Card jail_free = get_out_of_jail_free;
+            get_out_of_jail_free = null;
+            release_from_jail();
+            return jail_free;
+        }
+
         public void advance(int roll)
         {
             position += roll;
@@ -226,11 +246,7 @@ namespace Monopoly
                 //move forward to a select index
                 has_moved = true;
                 int goto_index = card.get_effect();
-                int distance = goto_index - position;
-                if (distance < 0)
-                {
-                    distance += 40; //ensure movement is forward
-                }
+                int distance = (goto_index - position + 40) % 40; //ensure movement is forward                
                 advance(distance);
                 return 0;
             }
@@ -241,6 +257,49 @@ namespace Monopoly
                 int distance = card.get_effect();
                 advance(distance);
                 return 0;
+            }
+            else if (category.Equals("move_utility"))
+            {
+                int dist_to_electric = (12 - position + 40) % 40;
+                int dist_to_water = (28 - position + 40) % 40;
+                if (dist_to_electric < dist_to_water)
+                {
+                    advance(dist_to_electric);
+                    return 0;
+                }
+                else
+                {
+                    advance(dist_to_water);
+                    return 0;
+                }
+            }
+            else if (category.Equals("move_rr"))
+            {
+                int dist_to_reading = (5 - position + 40) % 40;
+                int dist_to_penn = (15 - position + 40) % 40;
+                int dist_to_bo = (25 - position + 40) % 40;
+                int dist_to_short = (35 - position + 40) % 40;
+                int min_dist = Math.Min(Math.Min(dist_to_reading, dist_to_penn), Math.Min(dist_to_bo, dist_to_short));
+                if (min_dist == dist_to_reading)
+                {
+                    advance(dist_to_reading);
+                    return 0;
+                }
+                else if (min_dist == dist_to_penn)
+                {
+                    advance(dist_to_penn);
+                    return 0;
+                }
+                else if (min_dist == dist_to_bo)
+                {
+                    advance(dist_to_bo);
+                    return 0;
+                }
+                else //min_dist == dist_to_short
+                {
+                    advance(dist_to_short);
+                    return 0;
+                }
             }
             else if (category.Equals("move_jail"))
             {

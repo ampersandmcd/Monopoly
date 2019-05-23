@@ -41,6 +41,11 @@ namespace Monopoly
             return effect;
         }
 
+        public string get_type()
+        {
+            return type;
+        }
+
         public override string ToString()
         {
             return String.Format("\n{0}\n{1}\n\n{2}\n\n{3}\n{0}\n", div, type, name, description);

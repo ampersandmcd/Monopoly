@@ -14,6 +14,7 @@ namespace Monopoly
         const string OPTION_ROLL_DICE = "Roll dice";
         const string OPTION_ROLL_DICE_JAIL = "Roll dice (doubles will escape jail)";
         const string OPTION_PAY_JAIL = "Pay to escape jail";
+        const string OPTION_JAIL_CARD = "Use get out of jail free card";
         const string OPTION_MORTGAGE = "Mortgage property";
         const string OPTION_BUILD = "Build house / hotel";
         const string OPTION_TRADE = "Trade property";
@@ -75,12 +76,7 @@ namespace Monopoly
                 string[] row = parser.ReadFields()[0].Split('|');
                 board.Add(new Property(row));
             }
-
-            //foreach (Property p in board)
-            //{
-            //    Console.WriteLine(p + "\n");
-            //}
-            
+                        
             //////////////////////////////////////////////////////////////////////////
             // parse card csv file into memory
 
@@ -101,17 +97,8 @@ namespace Monopoly
                     chest.Add(new Card(row));
                 }
             }
-            shuffle_cards(ref chance);
-            shuffle_cards(ref chest);
-
-            //foreach (Card c in chance)
-            //{
-            //    Console.WriteLine(c + "\n");
-            //}
-            //foreach (Card c in chest)
-            //{
-            //    Console.WriteLine(c + "\n");
-            //}
+            //shuffle_cards(ref chance);
+            //shuffle_cards(ref chest);
 
             //////////////////////////////////////////////////////////////////////////
             // configure game settings
@@ -206,7 +193,21 @@ namespace Monopoly
                         }
 
                         //run turn
-                        Console.WriteLine("\n***\n\nYou currently are on {0} [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                        if (board[p.get_position()].get_name().Equals("Jail"))
+                        {
+                            if (p.jailed() == 0)
+                            {
+                                Console.WriteLine("\n***\n\nYou are currently at {0} (just visiting) [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                            }
+                            else
+                            {
+                                Console.WriteLine("\n***\n\nYou are currently in {0} [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("\n***\n\nYou are currently on {0} [index {1}] and have ${2}.", board[p.get_position()].get_name(), p.get_position(), p.get_money());
+                        }
                         List<string> options = generate_options(p, turn_is_over, has_rolled, rent_paid);
                         Console.WriteLine("You may:\n");
                         for (int i = 0; i < options.Count; i++)
@@ -267,19 +268,27 @@ namespace Monopoly
                     options.Add(OPTION_BUILD);
                 }
             }
-            else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll to get out of jail
+            else if (p.jailed() >= 1 && p.jailed() <= 3) //player can pay or try to roll or use card to get out of jail
             {
                 if (!turn_is_over)
                 {
                     options.Add(OPTION_ROLL_DICE_JAIL);
                     options.Add(OPTION_PAY_JAIL);
+                    if (p.has_jail_free_card())
+                    {
+                        options.Add(OPTION_JAIL_CARD);
+                    }
                 }                
             }
-            else //player must pay to get out of jail
+            else //player must pay to get out of jail or use card
             {
                 if (!turn_is_over)
                 {
                     options.Add(OPTION_PAY_JAIL);
+                }
+                if (p.has_jail_free_card())
+                {
+                    options.Add(OPTION_JAIL_CARD);
                 }
             }
             //////////////////////////////////////////////////////////////////////////            
@@ -389,7 +398,7 @@ namespace Monopoly
             {
                 p.pay_for_jail(JAIL_FEE);
                 add_free_parking(JAIL_FEE);
-                Console.WriteLine("You've successfully paid ${0} in bond to escape jail. You now have ${1}. The free parking pot now has ${2}",
+                Console.WriteLine("You've successfully paid ${0} in bond to escape jail. You now have ${1}. The free parking pot now has ${2}.",
                     JAIL_FEE, p.get_money(), free_parking);
                 turn_is_over = true;
             }
@@ -410,6 +419,20 @@ namespace Monopoly
                     Console.WriteLine("Darn! You didn't roll doubles, and are still in jail. You have {0} more chances " +
                         "to roll doubles before you'll have to pay bond.", 3 - p.jailed() + 1);
                     turn_is_over = true; 
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_JAIL_CARD))
+            {
+                Console.WriteLine("Congratulations - you've successfully used your get out of jail free card to escape jail.");
+                Card jail_free = p.use_jail_free_card();
+                if (jail_free.get_type().Equals("Chance"))
+                {
+                    chance.Add(jail_free);
+                }
+                else
+                {
+                    chest.Add(jail_free);
                 }
             }
             //////////////////////////////////////////////////////////////////////////
@@ -497,11 +520,12 @@ namespace Monopoly
                     has_rolled = true;
                     rent_paid = false;
                 }
-                Console.WriteLine("Chance action successfully taken. The new status of each player is displayed below.");
+                Console.WriteLine("Chance action successfully taken. The new status of each player is displayed below.\n");
                 foreach (Player other in players)
                 {
                     Console.WriteLine(other + "\n");
                 }
+                Console.WriteLine("The free parking pot now has ${0}.", free_parking);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_CHEST))
@@ -515,7 +539,7 @@ namespace Monopoly
                 chest.Remove(draw);
                 if (!draw.get_category().Equals("item"))
                 {
-                    chance.Add(draw); // add back to end of queue if NOT get out of jail free card; else, player keeps get out of jail free card
+                    chest.Add(draw); // add back to end of queue if NOT get out of jail free card; else, player keeps get out of jail free card
                 }
                 int parking_addition = p.take_card_action(draw, ref players, ref has_moved);
                 add_free_parking(parking_addition);
@@ -524,11 +548,12 @@ namespace Monopoly
                     has_rolled = true;
                     rent_paid = false;
                 }
-                Console.WriteLine("Community Chest action successfully taken. The new status of each player is displayed below.");
+                Console.WriteLine("Community Chest action successfully taken. The new status of each player is displayed below.\n");
                 foreach (Player other in players)
                 {
                     Console.WriteLine(other + "\n");
                 }
+                Console.WriteLine("The free parking pot now has ${0}.", free_parking);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_VIEW_PROPERTIES))
