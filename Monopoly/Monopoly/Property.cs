@@ -13,10 +13,12 @@ namespace Monopoly
         private string color;
         private int position;
         private int price;
+        private int mortgage_price;
         private int price_build;
         private int[] rent = new int[6]; //0th index = no houses, 1st index = 1 house,..., 5th index = hotel
         private int num_houses; //0 = no houses, 1 = 1 house, ..., 5 = hotel
         private bool is_owned;
+        private bool is_mortgaged;
         private Player owner;
 
         // parameter constructor for use with beginner_board.csv
@@ -28,6 +30,7 @@ namespace Monopoly
             color = attributes[2];
             position = Convert.ToInt32(attributes[3]);
             price = Convert.ToInt32(attributes[4]);
+            mortgage_price = price / 2;
             price_build = Convert.ToInt32(attributes[5]);
             for (int i = 6; i < 12; i++)
             {
@@ -36,6 +39,7 @@ namespace Monopoly
 
             num_houses = 0;
             is_owned = false;
+            is_mortgaged = false;
             owner = null;
         }
 
@@ -193,9 +197,31 @@ namespace Monopoly
             }
         }
 
+        public bool owned()
+        {
+            return is_owned;
+        }
+
+        public bool mortgaged()
+        {
+            return is_mortgaged;
+        }
+
+        public int mortgage()
+        {
+            is_mortgaged = true;
+            return mortgage_price;
+        }
+
+        public void unmortgage()
+        {
+            is_mortgaged = false;
+        }
+
         public void return_to_bank()
         {
             is_owned = false;
+            is_mortgaged = false;
             owner = null;
             num_houses = 0;
         }
@@ -211,11 +237,12 @@ Price to Build: {5}
 Rent: {6} / {7} / {8} / {9} / {10} / {11}
 Number of Houses: {12}
 Current Rent: {13} 
-Owner: {14}", name, space_type, color, position, price, price_build,
+Owner: {14}
+Is Mortgaged: {15}", name, space_type, color, position, price, price_build,
 rent[0], rent[1], rent[2], rent[3], rent[4], rent[5], 
 (num_houses < 5) ? num_houses.ToString() : "Hotel",
 get_rent(), 
-is_owned ? owner.get_nickname() : "not owned");
+is_owned ? owner.get_nickname() : "not owned", is_mortgaged);
         }
     }
 }

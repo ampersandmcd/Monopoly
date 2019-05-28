@@ -8,9 +8,13 @@
 ~chance and community chest cards~
 ~get out of jail free~
 ~house building restrictions / rules~
+~selling back houses / hotels~
+~graphics~
+~mortgaging~
+~trading and mortgaging rules with houses~
+~updating owned, monopolized, and mortgaged lists in memory~
 
+split up classes into menu compilation and action-taking
 modifying house rules with trades that break monopolies
-selling back houses / hotels
 mortgaging properties
-add graphics
 auction

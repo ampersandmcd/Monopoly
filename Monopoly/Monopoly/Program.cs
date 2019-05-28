@@ -17,6 +17,7 @@ namespace Monopoly
         const string OPTION_PAY_JAIL = "Pay to escape jail";
         const string OPTION_JAIL_CARD = "Use get out of jail free card";
         const string OPTION_MORTGAGE = "Mortgage property";
+        const string OPTION_UNMORTGAGE = "Unmortgage property";
         const string OPTION_BUILD = "Build house / hotel";
         const string OPTION_SELL_HOUSE = "Sell house / hotel";
         const string OPTION_TRADE = "Trade property";
@@ -24,6 +25,7 @@ namespace Monopoly
         const string OPTION_END_TURN = "End turn";
         const string OPTION_VIEW_PROPERTIES = "View owned properties";
         const string OPTION_VIEW_MONOPOLIES = "View owned monopolies";
+        const string OPTION_VIEW_MORTGAGES = "View mortgaged properties";
         const string OPTION_PAY_RENT = "Pay rent";
         const string OPTION_TILE_INFO = "View information about the current tile";
         const string OPTION_INCOME_TAX_FIXED = "Pay fixed income tax sum";
@@ -148,8 +150,8 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             // configure game settings
 
-            Console.WriteLine("Welcome to Hylandopoly!");
-            start_money = input_int("\nPlease enter the desired starting amount of H-bucks for each player.", 100, Int32.MaxValue );            
+            Console.WriteLine("Welcome to Monopoly!");
+            start_money = input_int("\nPlease enter the desired starting amount of money for each player.", 100, Int32.MaxValue );            
             Console.WriteLine("Each player will start with ${0}.", start_money);
 
             go_value = input_int("\nPlease enter the desired amount of money earned upon passing go.", 0, Int32.MaxValue);
@@ -169,9 +171,8 @@ namespace Monopoly
             // configure players
             for (int i = 0; i < num_players; i++)
             {
-                Console.WriteLine("\nPlease enter player {0}'s name.", i+1);
-                string name = Console.ReadLine();
-                Console.WriteLine("\n{0}, please select a character from the following list.", name);
+                string name = input_string(string.Format("\nPlease enter player {0}'s name.", i + 1), 1, 25);
+                Console.WriteLine("{0}, please select a character from the following list.", name);
                 int index = 0;
                 foreach (string s in available_characters)
                 {
@@ -283,6 +284,7 @@ namespace Monopoly
 
             options.Add(OPTION_VIEW_PROPERTIES);
             options.Add(OPTION_VIEW_MONOPOLIES);
+            options.Add(OPTION_VIEW_MORTGAGES);
             options.Add(OPTION_TILE_INFO);
             options.Add(OPTION_BOARD_INFO);
             options.Add(OPTION_GRAPHICS);
@@ -296,7 +298,8 @@ namespace Monopoly
                 }
                 //////////////////////////////////////////////////////////////////////////
                 if (has_rolled  &&
-                    board[p.get_position()].get_owner() == null &&
+                    !board[p.get_position()].owned() &&
+                    !board[p.get_position()].mortgaged() &&
                     (board[p.get_position()].get_type() == "Street" || 
                     board[p.get_position()].get_type() == "Railroad" || 
                     board[p.get_position()].get_type() == "Utility"))
@@ -308,6 +311,11 @@ namespace Monopoly
                 {
                     options.Add(OPTION_TRADE);
                     options.Add(OPTION_MORTGAGE);
+                }
+                //////////////////////////////////////////////////////////////////////////
+                if (p.get_mortgaged_properties().Count > 0)
+                {
+                    options.Add(OPTION_UNMORTGAGE);
                 }
                 //////////////////////////////////////////////////////////////////////////
                 if (p.get_monopolies().Count > 0 && bank_houses > 0 && bank_hotels > 0)
@@ -348,7 +356,7 @@ namespace Monopoly
                 options.Add(OPTION_END_TURN);
             }
             //////////////////////////////////////////////////////////////////////////
-            if (board[p.get_position()].get_owner() != null && board[p.get_position()].get_owner() != p &&
+            if (board[p.get_position()].owned() && !board[p.get_position()].mortgaged() && board[p.get_position()].get_owner() != p &&
                 rent_paid == false && has_rolled == true)
             {
                 //clear all options and force rent payment
@@ -639,6 +647,19 @@ namespace Monopoly
                 }
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_VIEW_MORTGAGES))
+            {
+                Console.WriteLine("Mortgaged properties:\n");
+                foreach (Property property in p.get_mortgaged_properties())
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                if (p.get_mortgaged_properties().Count == 0)
+                {
+                    Console.WriteLine("You do not own any mortgaged properties.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_TILE_INFO))
             {
                 Console.WriteLine("Current Tile:\n\n" + board[p.get_position()]);
@@ -647,6 +668,7 @@ namespace Monopoly
             if (action.Equals(OPTION_BOARD_INFO))
             {
                 string available_properties = "";
+                string mortgaged_properties = "";
                 string owned_properties = "";
                 string active_players = "";
                 string detailed_players = "";
@@ -654,9 +676,13 @@ namespace Monopoly
                 {
                     if (property.get_type().Equals("Street") || property.get_type().Equals("Railroad") || property.get_type().Equals("Utility"))
                     {
-                        if (property.get_owner() == null)
+                        if (!property.owned())
                         {
                             available_properties += property.get_name() + ", ";
+                        }
+                        else if (property.mortgaged())
+                        {
+                            mortgaged_properties += property.get_name() + ", ";
                         }
                         else
                         {
@@ -672,6 +698,10 @@ namespace Monopoly
                 if (available_properties.Length > 0)
                 {
                     available_properties = available_properties.Substring(0, available_properties.Length - 2);
+                }
+                if (mortgaged_properties.Length > 0)
+                {
+                    mortgaged_properties = mortgaged_properties.Substring(0, mortgaged_properties.Length - 2);
                 }
                 if (owned_properties.Length > 0)
                 {
@@ -695,14 +725,16 @@ Number of Hotels in Bank: {5}
 
 Owned Properties: {6}
 
-Available Properties: {7}
+Mortgaged Properties: {7}
 
-Active Players: {8}
+Available Properties: {8}
+
+Active Players: {9}
 
 Detailed Player Information:
 
-{9}", free_parking, free_parking_default, go_value, go_bonus, bank_houses, bank_hotels, owned_properties, 
-available_properties, active_players, detailed_players);
+{10}", free_parking, free_parking_default, go_value, go_bonus, bank_houses, bank_hotels, owned_properties, 
+mortgaged_properties, available_properties, active_players, detailed_players);
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_GRAPHICS))
@@ -813,6 +845,59 @@ available_properties, active_players, detailed_players);
                 }
             }
             //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_MORTGAGE))
+            {
+                List<Property> properties = p.get_tradable_properties(); //only get properties without houses on them
+                Console.WriteLine("You may mortgage one of the following properties:\n");
+                foreach (Property property in properties)
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                Console.WriteLine("\nSelect a property from the list below to mortgage: (note: properties with houses / hotels may not be mortgaged; houses / hotels must first be sold to the bank.)");
+                for (int i = 0; i < properties.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, properties[i].get_name());
+                }
+                Console.WriteLine("{0}: Cancel", properties.Count);
+                int number = input_int("\nEnter the number corresponding to the desired property.", 0, properties.Count);
+                if (number < properties.Count)
+                {
+                    p.mortgage_property(properties[number]);
+                    Console.WriteLine("{0} is now mortgaged.", properties[number].get_name());
+                }
+                else
+                {
+                    Console.WriteLine("Mortgaging cancelled.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_UNMORTGAGE))
+            {
+                List<Property> mortgaged = p.get_mortgaged_properties();
+                Console.WriteLine("You may unmortgage one of the following properties:\n");
+                foreach (Property property in mortgaged)
+                {
+                    Console.WriteLine(property + "\n");
+                }
+                Console.WriteLine("\nSelect a property from the list below to unmortgage:");
+                for (int i = 0; i < mortgaged.Count; i++)
+                {
+                    Console.WriteLine("{0}: {1}", i, mortgaged[i].get_name());
+                }
+                Console.WriteLine("{0}: Cancel", mortgaged.Count);
+                int number = input_int("\nEnter the number corresponding to the desired property.", 0, mortgaged.Count);
+                if (number < mortgaged.Count)
+                {
+                    Property property = mortgaged[number];
+                    p.unmortgage_property(property);
+                    Console.WriteLine("{0} is now unmortgaged.", property.get_name());
+                }
+                else
+                {
+                    Console.WriteLine("Unmortgaging cancelled.");
+                }
+            }
+            //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_BUILD))
             {
                 List<Property> monopolies = p.get_monopolies();
@@ -832,7 +917,7 @@ available_properties, active_players, detailed_players);
                     Console.WriteLine("{0}: {1}", i, buildable[i].get_name());
                 }
                 Console.WriteLine("{0}: Cancel", buildable.Count);
-                int number = input_int("\nEnter the number corresponding to the desired action.", 0, buildable.Count);
+                int number = input_int("\nEnter the number corresponding to the desired property.", 0, buildable.Count);
                 if (number < buildable.Count)
                 {
                     Property property = buildable[number];
@@ -955,6 +1040,26 @@ available_properties, active_players, detailed_players);
                 }
             }
             return num;            
+        }
+
+        private static string input_string(string message, int min_len, int max_len)
+        {
+            Console.WriteLine(message);
+            string input;
+            while (true)
+            {
+                input = Console.ReadLine();
+                if (input.Length >= min_len && input.Length <= max_len)
+                {
+                    Console.WriteLine("\n***\n");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Please enter a string of length between {0} and {1}.", min_len, max_len);
+                }
+            }
+            return input;            
         }
         
         private static void shuffle_cards(ref List<Card> list)

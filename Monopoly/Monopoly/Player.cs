@@ -19,6 +19,7 @@ namespace Monopoly
         private int double_count;
         private Card get_out_of_jail_free;
         private List<Property> properties_owned;
+        private List<Property> properties_mortgaged;
         private List<Property> monopolies;
         private List<Property> railroads;
         private List<Property> utilities;
@@ -30,6 +31,7 @@ namespace Monopoly
             money = start_money;
             position = 0; // go
             properties_owned = new List<Property>();
+            properties_mortgaged = new List<Property>();
             monopolies = new List<Property>();
             railroads = new List<Property>();
             utilities = new List<Property>();
@@ -109,6 +111,11 @@ namespace Monopoly
             return properties_owned;
         }
 
+        public List<Property> get_mortgaged_properties()
+        {
+            return properties_mortgaged;
+        }
+
         public List<Property> get_monopolies()
         {
             return monopolies;
@@ -131,10 +138,9 @@ namespace Monopoly
         public List<Property> get_tradable_properties()
         {
             List<Property> tradable = new List<Property>();
-            List<Property> house_properties = get_house_properties();
             foreach (Property p in properties_owned)
             {
-                if (house_properties.IndexOf(p) == -1)
+                if (p.get_houses() == 0)
                 {
                     //only add properties to tradable list if they don't have houses
                     tradable.Add(p);
@@ -258,6 +264,23 @@ namespace Monopoly
         public void receive_property(Property property)
         {
             properties_owned.Add(property);
+            refresh_properties();
+        }
+
+        public void mortgage_property(Property property)
+        {
+            properties_owned.Remove(property);
+            properties_mortgaged.Add(property);
+            money += property.mortgage();
+            refresh_properties();
+        }
+
+        public void unmortgage_property(Property property)
+        {
+            properties_mortgaged.Remove(property);
+            properties_owned.Add(property);
+            money -= property.get_price();
+            property.unmortgage();
             refresh_properties();
         }
 
@@ -433,6 +456,15 @@ namespace Monopoly
                 properties_owned.Remove(p);
             }
 
+            //clear out any mortgaged properties
+            foreach (Property p in properties_mortgaged)
+            {
+                if (properties_owned.IndexOf(p) != -1)
+                {
+                    properties_owned.Remove(p);
+                }
+            }
+
             //reset railroad, utility and monopoly counts in case of buy or trade
             railroads.Clear();
             utilities.Clear();
@@ -513,6 +545,16 @@ namespace Monopoly
                 railroads_list = railroads_list.Substring(0, railroads_list.Length - 2); // trim trailing slash
             }
 
+            string mortgaged_list = "";
+            foreach (Property p in properties_mortgaged)
+            {
+                mortgaged_list += p.get_name() + ", ";
+            }
+            if (properties_mortgaged.Count > 0)
+            {
+                mortgaged_list = mortgaged_list.Substring(0, mortgaged_list.Length - 2);
+            }
+
             string message = String.Format(@"{0} the {1}
 Money: ${2}
 Net Worth: ${3}
@@ -521,8 +563,9 @@ Properties Owned: {5}
 Monopolies Owned: {6}
 Utilities Owned: {7}
 Railroads Owned: {8}
-Get Out of Jail Free: {9}", 
-                name, character, money, get_net_worth(), position, properties_list, monopolies_list, utilities_list, railroads_list,
+Mortgaged Properties: {9}
+Get Out of Jail Free: {10}", 
+                name, character, money, get_net_worth(), position, properties_list, monopolies_list, utilities_list, railroads_list, mortgaged_list,
                 (get_out_of_jail_free == null) ? "Not Owned" : "Owned");
             
             return message;

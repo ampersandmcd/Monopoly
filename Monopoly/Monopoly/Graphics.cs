@@ -73,11 +73,15 @@ namespace Monopoly
             // create string of players at space
             string current = board_art[row].Substring(col, 5); // take 5-length substring in case of max. 5 houses
             string updated = "";
-            if (property.get_owner() != null)
+            if (property.owned())
             {
                 if (property.get_houses() == 5) // hotel
                 {
                     updated = "Hotel";
+                }
+                else if (property.mortgaged())
+                {
+                    updated = "mmmmm";
                 }
                 else // everything else
                 {
