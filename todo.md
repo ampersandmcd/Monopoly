@@ -15,6 +15,4 @@
 ~updating owned, monopolized, and mortgaged lists in memory~
 
 split up classes into menu compilation and action-taking
-modifying house rules with trades that break monopolies
-mortgaging properties
 auction
