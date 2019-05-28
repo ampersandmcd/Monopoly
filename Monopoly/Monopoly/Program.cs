@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,7 @@ namespace Monopoly
         const string OPTION_CHANCE = "Draw a chance card";
         const string OPTION_CHEST = "Draw a community chest card";
         const string OPTION_BOARD_INFO = "View global board information";
+        const string OPTION_GRAPHICS = "View graphical board";
 
         const string stars = "*********************************************************";
 
@@ -44,6 +46,7 @@ namespace Monopoly
         static List<Card> chance = new List<Card>();
         static List<Card> chest = new List<Card>();
         static Random dice = new Random();
+        static string[] board_art;
         static List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
 
         //////////////////////////////////////////////////////////////////////////
@@ -103,6 +106,12 @@ namespace Monopoly
             }
             shuffle_cards(ref chance);
             shuffle_cards(ref chest);
+
+            //////////////////////////////////////////////////////////////////////////
+            // parse board image into memory
+
+            path = @"M:\monopoly\board_art.txt";
+            board_art = File.ReadAllLines(path);
 
             //////////////////////////////////////////////////////////////////////////
             // configure game settings
@@ -244,6 +253,7 @@ namespace Monopoly
             options.Add(OPTION_VIEW_MONOPOLIES);
             options.Add(OPTION_TILE_INFO);
             options.Add(OPTION_BOARD_INFO);
+            options.Add(OPTION_GRAPHICS);
             options.Add(OPTION_PERSONAL_DATA);
             //////////////////////////////////////////////////////////////////////////
             if (p.jailed() == 0) //player has full freedom
@@ -661,6 +671,15 @@ Detailed Player Information:
 
 {9}", free_parking, free_parking_default, go_value, go_bonus, bank_houses, bank_hotels, owned_properties, 
 available_properties, active_players, detailed_players);
+            }
+            //////////////////////////////////////////////////////////////////////////
+            if (action.Equals(OPTION_GRAPHICS))
+            {
+                string[] rendered = Graphics.render(players, board, board_art);
+                foreach (String row in rendered)
+                {
+                    Console.WriteLine(row);
+                }
             }
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_TRADE))
