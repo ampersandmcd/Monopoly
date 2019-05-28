@@ -45,6 +45,8 @@ namespace Monopoly
         static List<Property> board = new List<Property>();
         static List<Card> chance = new List<Card>();
         static List<Card> chest = new List<Card>();
+        static List<int[]> spaces_player = new List<int[]>();
+        static List<int[]> spaces_houses = new List<int[]>();
         static Random dice = new Random();
         static string[] board_art;
         static List<string> available_characters = new List<string>() { "Battle Ship", "Top Hat", "Shoe", "Dog", "Wheelbarrow", "Race Car", "Iron", "Thimble" };
@@ -108,10 +110,40 @@ namespace Monopoly
             shuffle_cards(ref chest);
 
             //////////////////////////////////////////////////////////////////////////
-            // parse board image into memory
+            // parse board art into memory
 
             path = @"M:\monopoly\board_art.txt";
             board_art = File.ReadAllLines(path);
+
+            //////////////////////////////////////////////////////////////////////////
+            // parse board art player placement index csv file into memory
+
+            path = @"M:\monopoly\spaces_player.csv";
+            parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
+            parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+            parser.SetDelimiters(new string[] { ";" });
+            parser.ReadFields(); // skip first (header) row of CSV
+            while (!parser.EndOfData)
+            {
+                string[] row = parser.ReadFields()[0].Split('|');
+                int[] int_row = Array.ConvertAll(row, int.Parse);
+                spaces_player.Add(int_row);
+            }
+            
+            /////////////////////////////////////////////////////////////////////////
+            // parse board art house placement index csv file into memory
+
+            path = @"M:\monopoly\spaces_houses.csv";
+            parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(path);
+            parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+            parser.SetDelimiters(new string[] { ";" });
+            parser.ReadFields(); // skip first (header) row of CSV
+            while (!parser.EndOfData)
+            {
+                string[] row = parser.ReadFields()[0].Split('|');
+                int[] int_row = Array.ConvertAll(row, int.Parse);
+                spaces_houses.Add(int_row);
+            }
 
             //////////////////////////////////////////////////////////////////////////
             // configure game settings
@@ -675,7 +707,7 @@ available_properties, active_players, detailed_players);
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_GRAPHICS))
             {
-                string[] rendered = Graphics.render(players, board, board_art);
+                string[] rendered = Graphics.render(players, board, spaces_player, spaces_houses, board_art, free_parking);
                 foreach (String row in rendered)
                 {
                     Console.WriteLine(row);

@@ -106,6 +106,11 @@ namespace Monopoly
             return price;
         }
 
+        public int get_position()
+        {
+            return position;
+        }
+
         public int get_price_build()
         {
             return price_build;
