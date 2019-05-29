@@ -552,10 +552,10 @@ namespace Monopoly
             //////////////////////////////////////////////////////////////////////////
             if (action.Equals(OPTION_FREE_PARKING))
             {
-                rent_paid = true;
-                p.receive_payment(get_free_parking());
+                rent_paid = true;               
+                p.receive_payment(free_parking);
                 Console.WriteLine("You've collected ${0} in free parking. You now have ${1}. The free parking pot now has ${2}.",
-                    get_free_parking(), p.get_money(), free_parking_default);
+                    free_parking, p.get_money(), free_parking_default);
                 reset_free_parking();
             }
             //////////////////////////////////////////////////////////////////////////
@@ -1005,11 +1005,6 @@ mortgaged_properties, available_properties, active_players, detailed_players);
                 doubles = false;
             }
             return roll_one + roll_two;
-        }
-
-        private static int get_free_parking()
-        {
-            return free_parking;
         }
 
         private static void reset_free_parking()
