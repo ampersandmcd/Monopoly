@@ -994,8 +994,8 @@ mortgaged_properties, available_properties, active_players, detailed_players);
         {
             //int roll_one = dice.Next(1, 7);
             //int roll_two = dice.Next(1, 7);
-            int roll_one = input_int("HACKER MODE (enter first dice number)", int.MinValue, int.MaxValue);
-            int roll_two = input_int("HACKER MODE (enter second dice number)", int.MinValue, int.MaxValue);
+            int roll_one = input_int("Debug Mode: enter first dice number", int.MinValue, int.MaxValue);
+            int roll_two = input_int("Debug Mode: enter second dice number", int.MinValue, int.MaxValue);
             if (roll_one == roll_two)
             {
                 doubles = true;
